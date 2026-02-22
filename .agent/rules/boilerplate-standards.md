@@ -67,12 +67,12 @@ All pure/presentational components must be wrapped with `React.memo` and assigne
 - **Pattern**:
 
 ```tsx
-import { memo } from "react";
+import { memo } from 'react';
 
 export const MyAtom = memo(({ label }: Props) => {
   return <Typography variant="body">{label}</Typography>;
 });
-MyAtom.displayName = "MyAtom";
+MyAtom.displayName = 'MyAtom';
 ```
 
 ## 7. Zustand Persisted Store Pattern
@@ -83,9 +83,9 @@ Persisted stores use `persist` middleware with `createZustandStorage` from `serv
 - **Pattern**:
 
 ```typescript
-import { createZustandStorage, STORAGE_IDS } from "@/services/storage/kvStorage";
-import { create } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
+import { createZustandStorage, STORAGE_IDS } from '@/services/storage/kvStorage';
+import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
 
 export const useFeatureStore = create<FeatureStore>()(
   persist(
@@ -93,9 +93,11 @@ export const useFeatureStore = create<FeatureStore>()(
       // state and actions
     }),
     {
-      name: "feature-storage",
+      name: 'feature-storage',
       storage: createJSONStorage(() => createZustandStorage(STORAGE_IDS.SETTINGS)),
-      partialize: (state) => ({ /* only the fields to persist */ }),
+      partialize: (state) => ({
+        /* only the fields to persist */
+      }),
     }
   )
 );

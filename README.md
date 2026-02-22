@@ -65,7 +65,7 @@ doppler login
 doppler setup
 ```
 
-*(Alternatively, you can manually copy `.env.example` to `.env` to provide the required environment variables without Doppler.)*
+_(Alternatively, you can manually copy `.env.example` to `.env` to provide the required environment variables without Doppler.)_
 
 ### 3. Run the App
 

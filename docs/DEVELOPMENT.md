@@ -54,18 +54,18 @@ yarn android           # Android emulator/device
 
 ## Available Scripts
 
-| Command | Description |
-|---|---|
-| `yarn start` | Start Metro bundler (Doppler-managed) |
-| `yarn ios` | Run on iOS simulator/device |
-| `yarn android` | Run on Android emulator/device |
-| `yarn lint` | ESLint + Prettier check |
-| `yarn tsc --noEmit` | TypeScript type-check |
-| `yarn test` | Run all Jest unit tests |
-| `yarn test:watch` | Jest in watch mode |
-| `yarn test:coverage` | Jest with coverage report |
-| `yarn test:e2e` | Run Maestro E2E flow |
-| `yarn pre-commit` | Full pipeline: format → lint → tsc → test |
+| Command              | Description                               |
+| -------------------- | ----------------------------------------- |
+| `yarn start`         | Start Metro bundler (Doppler-managed)     |
+| `yarn ios`           | Run on iOS simulator/device               |
+| `yarn android`       | Run on Android emulator/device            |
+| `yarn lint`          | ESLint + Prettier check                   |
+| `yarn tsc --noEmit`  | TypeScript type-check                     |
+| `yarn test`          | Run all Jest unit tests                   |
+| `yarn test:watch`    | Jest in watch mode                        |
+| `yarn test:coverage` | Jest with coverage report                 |
+| `yarn test:e2e`      | Run Maestro E2E flow                      |
+| `yarn pre-commit`    | Full pipeline: format → lint → tsc → test |
 
 ---
 
@@ -94,11 +94,11 @@ npx expo prebuild --clean
 
 The project uses [EAS Build](https://docs.expo.dev/build/introduction/) with three profiles defined in `eas.json`:
 
-| Profile | Distribution | Use case |
-|---|---|---|
-| `development` | Internal | Dev client builds with full debugging |
-| `preview` | Internal | Staging/QA builds for internal testing |
-| `production` | App stores | Release builds with auto-increment version |
+| Profile       | Distribution | Use case                                   |
+| ------------- | ------------ | ------------------------------------------ |
+| `development` | Internal     | Dev client builds with full debugging      |
+| `preview`     | Internal     | Staging/QA builds for internal testing     |
+| `production`  | App stores   | Release builds with auto-increment version |
 
 ```bash
 # Install EAS CLI
@@ -121,6 +121,7 @@ eas submit --platform android --profile production
 GitHub Actions runs automatically on every push and pull request to `main`/`master`.
 
 **Pipeline** (`.github/workflows/ci.yml`):
+
 1. Checkout + Node setup from `.nvmrc`
 2. `yarn install --frozen-lockfile`
 3. `yarn lint`
@@ -244,7 +245,7 @@ To add a new color, update both light and dark palettes in `stores/theme/themeSt
 
 ```tsx
 const { t } = useTranslation();
-return <Text>{t("common.save")}</Text>;
+return <Text>{t('common.save')}</Text>;
 ```
 
 Add keys to `i18n/locales/en.ts` and `i18n/locales/es.ts` using dotted namespaces.
@@ -254,12 +255,12 @@ Add keys to `i18n/locales/en.ts` and `i18n/locales/es.ts` using dotted namespace
 All pure components must be memoized and named:
 
 ```tsx
-import { memo } from "react";
+import { memo } from 'react';
 
 export const MyAtom = memo(({ label }: Props) => {
   return <Typography variant="body">{label}</Typography>;
 });
-MyAtom.displayName = "MyAtom";
+MyAtom.displayName = 'MyAtom';
 ```
 
 ### Accessibility
@@ -268,8 +269,8 @@ Interactive components require accessibility props:
 
 ```tsx
 <Pressable
-  accessibilityRole="button"        // defaulted in Pressable atom
-  accessibilityLabel={t("common.close")}
+  accessibilityRole="button" // defaulted in Pressable atom
+  accessibilityLabel={t('common.close')}
   accessibilityState={{ disabled: isLoading, busy: isLoading }}
 />
 ```

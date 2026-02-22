@@ -35,7 +35,7 @@
 `jest.mock` is hoisted before variable declarations. Define all `jest.fn()` calls **inside** the factory and retrieve them with `jest.requireMock()`:
 
 ```typescript
-jest.mock("../client", () => ({
+jest.mock('../client', () => ({
   supabase: {
     auth: {
       signInWithPassword: jest.fn(),
@@ -45,7 +45,7 @@ jest.mock("../client", () => ({
 }));
 
 const mockAuth = (
-  jest.requireMock("../client") as { supabase: { auth: Record<string, jest.Mock> } }
+  jest.requireMock('../client') as { supabase: { auth: Record<string, jest.Mock> } }
 ).supabase.auth;
 ```
 
@@ -54,12 +54,14 @@ const mockAuth = (
 Reset store state between tests using `act` + `setState` to avoid cross-test leakage:
 
 ```typescript
-import { act } from "@testing-library/react-native";
-import { useFeatureStore } from "../featureStore";
+import { act } from '@testing-library/react-native';
+import { useFeatureStore } from '../featureStore';
 
 beforeEach(() => {
   act(() => {
-    useFeatureStore.setState({ /* initial state */ });
+    useFeatureStore.setState({
+      /* initial state */
+    });
   });
 });
 ```
@@ -67,9 +69,13 @@ beforeEach(() => {
 Mock `@/services/storage/kvStorage` to prevent SQLite dependency in unit tests:
 
 ```typescript
-jest.mock("@/services/storage/kvStorage", () => ({
-  createZustandStorage: jest.fn(() => ({ getItem: jest.fn(), setItem: jest.fn(), removeItem: jest.fn() })),
-  STORAGE_IDS: { SETTINGS: "settings" },
+jest.mock('@/services/storage/kvStorage', () => ({
+  createZustandStorage: jest.fn(() => ({
+    getItem: jest.fn(),
+    setItem: jest.fn(),
+    removeItem: jest.fn(),
+  })),
+  STORAGE_IDS: { SETTINGS: 'settings' },
 }));
 ```
 

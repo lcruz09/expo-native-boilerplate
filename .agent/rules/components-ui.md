@@ -14,7 +14,7 @@
 export const MyComponent = memo(({ label }: Props) => {
   return <Typography variant="body">{label}</Typography>;
 });
-MyComponent.displayName = "MyComponent";
+MyComponent.displayName = 'MyComponent';
 ```
 
 # Accessibility

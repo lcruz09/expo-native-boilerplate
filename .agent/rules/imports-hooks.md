@@ -22,7 +22,7 @@ Some hooks exist solely for side effects and return nothing (e.g., `useDeepLinki
 ```typescript
 export const useDeepLinking = () => {
   useEffect(() => {
-    const subscription = Linking.addEventListener("url", handleUrl);
+    const subscription = Linking.addEventListener('url', handleUrl);
     return () => subscription.remove();
   }, []);
 };
