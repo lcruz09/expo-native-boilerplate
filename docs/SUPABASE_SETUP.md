@@ -132,7 +132,7 @@ The app is configured to use the `public` schema by default (see `services/supab
 ```typescript
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   db: {
-    schema: "public", // Change this if your project uses a different schema
+    schema: 'public', // Change this if your project uses a different schema
   },
 });
 ```

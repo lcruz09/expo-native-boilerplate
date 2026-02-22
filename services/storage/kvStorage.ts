@@ -1,5 +1,5 @@
-import { SQLiteStorage } from "expo-sqlite/kv-store";
-import { StateStorage } from "zustand/middleware";
+import { SQLiteStorage } from 'expo-sqlite/kv-store';
+import { StateStorage } from 'zustand/middleware';
 
 /**
  * KV Storage Service
@@ -12,14 +12,10 @@ import { StateStorage } from "zustand/middleware";
  * Storage instance IDs for different app features.
  */
 export const STORAGE_IDS = {
-  THEME: "wattr-theme-storage",
-  LOCALE: "wattr-locale-storage",
-  USER_PROFILE: "wattr-user-profile",
-  WORKOUTS: "wattr-workouts",
-  SETTINGS: "wattr-settings",
-  USER_PREFERENCES: "wattr-user-preferences",
-  APP_DATA: "wattr-app-data",
-  AUTH: "wattr-auth",
+  THEME: 'app-theme-storage',
+  LOCALE: 'app-locale-storage',
+  SETTINGS: 'app-settings',
+  AUTH: 'app-auth',
 } as const;
 
 /**
@@ -69,10 +65,6 @@ export const createZustandStorage = (id: string): StateStorage => {
 export const storage = {
   theme: getStorage(STORAGE_IDS.THEME),
   locale: getStorage(STORAGE_IDS.LOCALE),
-  userProfile: getStorage(STORAGE_IDS.USER_PROFILE),
-  workouts: getStorage(STORAGE_IDS.WORKOUTS),
   settings: getStorage(STORAGE_IDS.SETTINGS),
-  userPreferences: getStorage(STORAGE_IDS.USER_PREFERENCES),
-  appData: getStorage(STORAGE_IDS.APP_DATA),
   auth: getStorage(STORAGE_IDS.AUTH),
 };

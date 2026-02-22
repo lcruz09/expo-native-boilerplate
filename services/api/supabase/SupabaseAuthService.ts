@@ -1,6 +1,6 @@
-import { config } from "@/config";
-import { AuthError } from "@/types/auth";
-import { createLogger } from "@/utils/logger";
+import { config } from '@/config';
+import { AuthError } from '@/types/auth';
+import { createLogger } from '@/utils/logger';
 import {
   AuthResponse,
   AuthSession,
@@ -10,11 +10,11 @@ import {
   LoginCredentials,
   RegisterData,
   UnsubscribeFn,
-} from "../interfaces/IAuthService";
-import { supabase } from "./client";
-import { handleAuthError } from "./utils";
+} from '../interfaces/IAuthService';
+import { supabase } from './client';
+import { handleAuthError } from './utils';
 
-const logger = createLogger("SupabaseAuthService");
+const logger = createLogger('SupabaseAuthService');
 
 /**
  * Supabase Authentication Service
@@ -33,7 +33,7 @@ export class SupabaseAuthService implements IAuthService {
    * Login with email and password
    */
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    logger.info("Attempting login for:", credentials.email);
+    logger.info('Attempting login for:', credentials.email);
 
     const { data, error } = await supabase.auth.signInWithPassword({
       email: credentials.email,
@@ -46,11 +46,11 @@ export class SupabaseAuthService implements IAuthService {
 
     if (!data.session) {
       throw {
-        message: "Login failed - no session returned",
+        message: 'Login failed - no session returned',
       } as AuthError;
     }
 
-    logger.info("Login successful for:", credentials.email);
+    logger.info('Login successful for:', credentials.email);
     return { user: data.user, session: data.session };
   }
 
@@ -58,7 +58,7 @@ export class SupabaseAuthService implements IAuthService {
    * Register a new user with email and password
    */
   async register(data: RegisterData): Promise<AuthResponse> {
-    logger.info("Attempting registration for:", data.email);
+    logger.info('Attempting registration for:', data.email);
 
     const { data: authData, error } = await supabase.auth.signUp({
       email: data.email,
@@ -67,11 +67,6 @@ export class SupabaseAuthService implements IAuthService {
         data: {
           first_name: data.firstName || null,
           last_name: data.lastName || null,
-          gender: data.gender,
-          birth_year: data.birthYear,
-          height: data.height,
-          weight: data.weight,
-          resting_heart_rate: data.restingHeartRate || null,
         },
         emailRedirectTo: config.supabase.authCallbackUrl,
       },
@@ -83,11 +78,11 @@ export class SupabaseAuthService implements IAuthService {
 
     if (!authData.user) {
       throw {
-        message: "Registration failed - no user returned",
+        message: 'Registration failed - no user returned',
       } as AuthError;
     }
 
-    logger.info("Registration successful for:", data.email);
+    logger.info('Registration successful for:', data.email);
     return { user: authData.user, session: authData.session! };
   }
 
@@ -95,7 +90,7 @@ export class SupabaseAuthService implements IAuthService {
    * Logout the current user
    */
   async logout(): Promise<void> {
-    logger.info("Attempting logout");
+    logger.info('Attempting logout');
 
     const { error } = await supabase.auth.signOut();
 
@@ -103,7 +98,7 @@ export class SupabaseAuthService implements IAuthService {
       throw handleAuthError(error);
     }
 
-    logger.info("Logout successful");
+    logger.info('Logout successful');
   }
 
   /**
@@ -164,10 +159,10 @@ export class SupabaseAuthService implements IAuthService {
    * Resend confirmation email to user
    */
   async resendConfirmationEmail(email: string): Promise<void> {
-    logger.info("Resending confirmation email to:", email);
+    logger.info('Resending confirmation email to:', email);
 
     const { error } = await supabase.auth.resend({
-      type: "signup",
+      type: 'signup',
       email,
       options: {
         emailRedirectTo: config.supabase.authCallbackUrl,
@@ -178,7 +173,7 @@ export class SupabaseAuthService implements IAuthService {
       throw handleAuthError(error);
     }
 
-    logger.info("Confirmation email resent successfully to:", email);
+    logger.info('Confirmation email resent successfully to:', email);
   }
 
   /**
@@ -192,7 +187,7 @@ export class SupabaseAuthService implements IAuthService {
    */
   async handleEmailConfirmation(url: string): Promise<AuthResponse | null> {
     try {
-      logger.debug("Handling email confirmation deeplink", url);
+      logger.debug('Handling email confirmation deeplink', url);
 
       // Parse the URL - Supabase uses hash fragment, not query params
       const urlObj = new URL(url);
@@ -200,11 +195,11 @@ export class SupabaseAuthService implements IAuthService {
       // Extract params from hash (everything after #)
       const hashParams = new URLSearchParams(urlObj.hash.substring(1));
 
-      const accessToken = hashParams.get("access_token");
-      const refreshToken = hashParams.get("refresh_token");
+      const accessToken = hashParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token');
 
       if (!accessToken || !refreshToken) {
-        logger.warn("Invalid confirmation link - missing tokens");
+        logger.warn('Invalid confirmation link - missing tokens');
         return null;
       }
 
@@ -215,19 +210,19 @@ export class SupabaseAuthService implements IAuthService {
       });
 
       if (error) {
-        logger.error("Error setting session from confirmation:", error);
+        logger.error('Error setting session from confirmation:', error);
         throw handleAuthError(error);
       }
 
       if (!data.session || !data.user) {
-        logger.warn("No session or user returned from email confirmation");
+        logger.warn('No session or user returned from email confirmation');
         return null;
       }
 
-      logger.info("Email confirmed successfully for:", data.user.email);
+      logger.info('Email confirmed successfully for:', data.user.email);
       return { user: data.user, session: data.session };
     } catch (error) {
-      logger.error("Error handling email confirmation:", error);
+      logger.error('Error handling email confirmation:', error);
       throw error;
     }
   }

@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 /**
  * Translation function type
@@ -8,7 +8,7 @@ import { z } from "zod";
 type TranslateFn = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   key: any,
-  options?: Record<string, string | number>,
+  options?: Record<string, string | number>
 ) => string;
 
 /**
@@ -30,17 +30,17 @@ export const createLoginSchema = (t: TranslateFn) =>
   z.object({
     email: z
       .string({
-        required_error: t("validation.emailRequired"),
+        required_error: t('validation.emailRequired'),
       })
-      .email(t("validation.emailInvalid"))
+      .email(t('validation.emailInvalid'))
       .toLowerCase()
       .trim(),
 
     password: z
       .string({
-        required_error: t("validation.passwordRequired"),
+        required_error: t('validation.passwordRequired'),
       })
-      .min(1, t("validation.passwordRequired")),
+      .min(1, t('validation.passwordRequired')),
   });
 
 /**

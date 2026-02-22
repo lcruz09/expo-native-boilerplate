@@ -1,6 +1,6 @@
-import * as FileSystem from "expo-file-system/legacy";
-import { consoleTransport, logger as rnLogger } from "react-native-logs";
-import { getSystemInfo } from "./systemInfo";
+import * as FileSystem from 'expo-file-system/legacy';
+import { consoleTransport, logger as rnLogger } from 'react-native-logs';
+import { getSystemInfo } from './systemInfo';
 
 /**
  * Logger Utility
@@ -9,7 +9,7 @@ import { getSystemInfo } from "./systemInfo";
  * Uses react-native-logs for structured logging to both console and JSON files.
  */
 
-type LogLevel = "debug" | "info" | "warn" | "error";
+type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 /**
  * Log entry structure for file transport
@@ -32,6 +32,16 @@ interface LogMessage {
   extension?: string | null;
   options?: unknown;
 }
+
+/**
+ * Maximum number of log files to retain on device.
+ */
+const MAX_LOG_FILES = 10;
+
+/**
+ * Maximum age of a log file before it is eligible for deletion (7 days).
+ */
+const MAX_LOG_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
 /**
  * Current log file path (set during session initialization)
@@ -57,11 +67,11 @@ let sessionActive = false;
 const generateLogFileName = (): string => {
   const now = new Date();
   const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-  const hours = String(now.getHours()).padStart(2, "0");
-  const minutes = String(now.getMinutes()).padStart(2, "0");
-  const seconds = String(now.getSeconds()).padStart(2, "0");
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
 
   return `wattr-log-${year}-${month}-${day}-${hours}${minutes}${seconds}.json`;
 };
@@ -94,7 +104,7 @@ const customFileTransport = async (msg: LogMessage) => {
 
   try {
     const logEntry: LogEntry = {
-      level: (msg.level.text as LogLevel) || "info",
+      level: (msg.level.text as LogLevel) || 'info',
       message: msg.msg,
       timestamp: new Date().toISOString(),
       context: msg.extension || undefined,
@@ -123,13 +133,10 @@ const customFileTransport = async (msg: LogMessage) => {
     logs.push(logEntry);
 
     // Write back to file
-    await FileSystem.writeAsStringAsync(
-      currentLogFilePath,
-      JSON.stringify(logs, null, 2),
-    );
+    await FileSystem.writeAsStringAsync(currentLogFilePath, JSON.stringify(logs, null, 2));
   } catch (error) {
     // Silently fail to avoid infinite loops
-    console.error("Failed to write log to file:", error);
+    console.error('Failed to write log to file:', error);
   }
 };
 
@@ -143,18 +150,18 @@ const config = {
     warn: 2,
     error: 3,
   },
-  severity: "debug",
+  severity: 'debug',
   transport: [consoleTransport, customFileTransport],
   transportOptions: {
     colors: {
-      debug: "blueBright" as const,
-      info: "greenBright" as const,
-      warn: "yellowBright" as const,
-      error: "redBright" as const,
+      debug: 'blueBright' as const,
+      info: 'greenBright' as const,
+      warn: 'yellowBright' as const,
+      error: 'redBright' as const,
     },
   },
   async: true,
-  dateFormat: "time",
+  dateFormat: 'time',
   printLevel: true,
   printDate: true,
   enabled: true,
@@ -164,6 +171,54 @@ const config = {
  * Global logger instance
  */
 const globalLogger = rnLogger.createLogger(config);
+
+/**
+ * Remove log files that exceed the age or count limits.
+ *
+ * - Deletes files older than MAX_LOG_AGE_MS.
+ * - Trims the oldest files so at most MAX_LOG_FILES remain.
+ *
+ * Failures are silently swallowed — log cleanup is best-effort.
+ */
+const cleanupOldLogs = async (): Promise<void> => {
+  try {
+    const dirPath = getLogDirectory();
+    const dirInfo = await FileSystem.getInfoAsync(dirPath);
+    if (!dirInfo.exists) return;
+
+    const files = await FileSystem.readDirectoryAsync(dirPath);
+    // Filenames embed a timestamp so lexicographic order == chronological order
+    const logFiles = files.filter((f) => f.endsWith('.json')).sort();
+
+    const cutoffMs = Date.now() - MAX_LOG_AGE_MS;
+
+    // Delete files beyond maximum age
+    for (const file of logFiles) {
+      const fullPath = `${dirPath}${file}`;
+      const info = await FileSystem.getInfoAsync(fullPath);
+      if (
+        info.exists &&
+        'modificationTime' in info &&
+        info.modificationTime !== undefined &&
+        info.modificationTime * 1000 < cutoffMs
+      ) {
+        await FileSystem.deleteAsync(fullPath, { idempotent: true });
+      }
+    }
+
+    // Enforce maximum file count — keep only the newest MAX_LOG_FILES
+    const remaining = (await FileSystem.readDirectoryAsync(dirPath))
+      .filter((f) => f.endsWith('.json'))
+      .sort();
+
+    const excess = remaining.slice(0, Math.max(0, remaining.length - MAX_LOG_FILES));
+    for (const file of excess) {
+      await FileSystem.deleteAsync(`${dirPath}${file}`, { idempotent: true });
+    }
+  } catch {
+    // Silent failure — never let cleanup crash the app
+  }
+};
 
 /**
  * Start a new logging session.
@@ -183,6 +238,9 @@ export const startSession = async (): Promise<string> => {
     // Ensure directory exists
     await ensureLogDirectory();
 
+    // Remove stale/excess log files before creating a new one
+    await cleanupOldLogs();
+
     // Generate filename and path
     const filename = generateLogFileName();
     currentLogFilePath = `${getLogDirectory()}${filename}`;
@@ -191,20 +249,20 @@ export const startSession = async (): Promise<string> => {
     sessionActive = true;
 
     // Initialize file with empty array
-    await FileSystem.writeAsStringAsync(currentLogFilePath, "[]");
+    await FileSystem.writeAsStringAsync(currentLogFilePath, '[]');
 
     // Log session start
-    globalLogger.info("📱 Session started");
+    globalLogger.info('📱 Session started');
 
     // Log system information
     const systemInfo = getSystemInfo();
-    globalLogger.info("🔧 System Information", systemInfo);
+    globalLogger.info('🔧 System Information', systemInfo);
 
     return currentLogFilePath;
   } catch (error) {
-    console.error("Failed to start logging session:", error);
+    console.error('Failed to start logging session:', error);
     sessionActive = false;
-    return "";
+    return '';
   }
 };
 
@@ -224,11 +282,11 @@ export const endSession = async (): Promise<void> => {
   }
 
   try {
-    globalLogger.info("📱 Session ended");
+    globalLogger.info('📱 Session ended');
     sessionActive = false;
     currentLogFilePath = null;
   } catch (error) {
-    console.error("Failed to end logging session:", error);
+    console.error('Failed to end logging session:', error);
   }
 };
 
@@ -269,23 +327,23 @@ export class Logger {
   }
 
   log(message: string, ...args: unknown[]) {
-    this.extend("info", message, ...args);
+    this.extend('info', message, ...args);
   }
 
   info(message: string, ...args: unknown[]) {
-    this.extend("info", message, ...args);
+    this.extend('info', message, ...args);
   }
 
   warn(message: string, ...args: unknown[]) {
-    this.extend("warn", message, ...args);
+    this.extend('warn', message, ...args);
   }
 
   error(message: string, ...args: unknown[]) {
-    this.extend("error", message, ...args);
+    this.extend('error', message, ...args);
   }
 
   debug(message: string, ...args: unknown[]) {
-    this.extend("debug", message, ...args);
+    this.extend('debug', message, ...args);
   }
 
   /**

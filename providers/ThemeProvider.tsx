@@ -1,7 +1,7 @@
-import { useThemeStore } from "@/stores/theme/themeStore";
-import { useColorScheme as useNativeWindColorScheme } from "nativewind";
-import React, { ReactNode, useEffect, useMemo, useRef } from "react";
-import { Appearance } from "react-native";
+import { useThemeStore } from '@/stores/theme/themeStore';
+import { useColorScheme as useNativeWindColorScheme } from 'nativewind';
+import React, { ReactNode, useEffect, useMemo, useRef } from 'react';
+import { Appearance } from 'react-native';
 
 /**
  * ThemeProvider component that manages theme state and system theme detection.
@@ -26,14 +26,12 @@ import { Appearance } from "react-native";
  */
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const { setColorScheme } = useNativeWindColorScheme();
-  const setSystemColorScheme = useThemeStore(
-    (state) => state.setSystemColorScheme,
-  );
+  const setSystemColorScheme = useThemeStore((state) => state.setSystemColorScheme);
   const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
 
   // Use refs to track OS theme separately from app theme
-  const lastOsThemeRef = useRef<"light" | "dark" | null | undefined>(null);
-  const lastAppThemeRef = useRef<"light" | "dark">(resolvedTheme);
+  const lastOsThemeRef = useRef<'light' | 'dark' | null | undefined>(null);
+  const lastAppThemeRef = useRef<'light' | 'dark'>(resolvedTheme);
 
   // Initialize NativeWind color scheme synchronously to prevent flicker
   useMemo(() => {
@@ -53,10 +51,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
 
     const subscription = Appearance.addChangeListener(({ colorScheme }) => {
       // Ignore changes that match our app theme (these are from NativeWind, not the OS)
-      if (
-        colorScheme === lastAppThemeRef.current &&
-        colorScheme !== lastOsThemeRef.current
-      ) {
+      if (colorScheme === lastAppThemeRef.current && colorScheme !== lastOsThemeRef.current) {
         return;
       }
 

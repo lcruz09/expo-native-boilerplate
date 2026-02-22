@@ -1,0 +1,21 @@
+appId: com.boilerplate.app
+---
+# Login Subflow
+# Precondition: Landing screen is visible with "Log In" button
+- assertVisible: 'Log In'
+- tapOn: 'Log In'
+- waitForAnimationToEnd
+
+- assertVisible: 'Welcome Back'
+- tapOn:
+    id: 'email-input'
+- inputText: ${EMAIL}
+
+- tapOn:
+    id: 'password-input'
+- inputText: ${PASSWORD}
+- hideKeyboard
+
+- tapOn: 'Log In'
+- waitForAnimationToEnd
+- assertVisible: 'Welcome'

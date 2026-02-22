@@ -1,8 +1,4 @@
-import {
-  ResolvedTheme,
-  ThemeMode,
-  useThemeStore,
-} from "@/stores/theme/themeStore";
+import { ResolvedTheme, ThemeMode, useThemeStore } from '@/stores/theme/themeStore';
 
 /**
  * Return type for the useTheme hook.
@@ -67,14 +63,14 @@ export const useTheme = (): UseThemeReturn => {
   const theme = useThemeStore((state) => state.resolvedTheme);
   const setMode = useThemeStore((state) => state.setMode);
 
-  const isDark = theme === "dark";
-  const isLight = theme === "light";
+  const isDark = theme === 'dark';
+  const isLight = theme === 'light';
 
   const toggleTheme = () => {
-    if (theme === "dark") {
-      setMode("light");
+    if (theme === 'dark') {
+      setMode('light');
     } else {
-      setMode("dark");
+      setMode('dark');
     }
   };
 

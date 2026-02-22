@@ -5,13 +5,10 @@
  */
 
 // Suppress Node.js deprecation warnings (like punycode)
-process.removeAllListeners("warning");
-process.on("warning", (warning) => {
+process.removeAllListeners('warning');
+process.on('warning', (warning) => {
   // Suppress punycode deprecation warnings from dependencies
-  if (
-    warning.name === "DeprecationWarning" &&
-    warning.message.includes("punycode")
-  ) {
+  if (warning.name === 'DeprecationWarning' && warning.message.includes('punycode')) {
     return;
   }
   // Show other warnings
@@ -19,9 +16,9 @@ process.on("warning", (warning) => {
 });
 
 // Provide FormData for environments where it's missing (Node tests)
-if (typeof global.FormData === "undefined") {
+if (typeof global.FormData === 'undefined') {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
-  global.FormData = require("form-data");
+  global.FormData = require('form-data');
 }
 
 // Set global test timeout to prevent hanging tests

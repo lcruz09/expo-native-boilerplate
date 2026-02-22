@@ -10,15 +10,18 @@ graph TD
     Pages --> Components[Components /components]
     Hooks --> Stores[Stores /stores]
     Hooks --> Services[Services /services]
+    Hooks --> QueryClient[TanStack QueryClient]
     Components --> Hooks
     Components --> Atoms[Atoms/Molecules]
     Organisms[Organisms] --> Hooks
     Pages --> Schemas[Schemas /schemas]
     Forms[Forms] --> Schemas
     AppLayout --> Providers[Providers /providers]
+    AppLayout --> DeepLinking[useDeepLinking]
     Translation[Translation /i18n] --> Schemas
     Translation --> Components
     Hooks --> Utils[Utils /utils]
+    DeepLinking --> QueryClient
 ```
 
 ## 1. Pages (`app/`)
@@ -48,10 +51,11 @@ Follows **Atomic Design** principles.
 
 Built with **Zustand** for global state management.
 
-- **Role**: Single source of truth for app-wide state (Auth, Workouts, Settings).
+- **Role**: Single source of truth for app-wide state.
+- Current stores: `themeStore` (light/dark/system), `userStore` (language, onboarding).
 - **Interactions**:
   - Accessed primarily via **Hooks**.
-  - Persisted using MMKV where necessary (e.g., Auth session).
+  - Persisted using `expo-sqlite/kv-store` via `createZustandStorage` (see `services/storage/kvStorage.ts`).
   - Stores should remain focused on data; logic should live in Hooks or Services.
 
 ## 4. Schemas (`schemas/`)
@@ -68,10 +72,11 @@ Built with **Zod** for type-safe validation.
 
 React Context providers wrapping the application.
 
-- **Role**: Provide global services that require React Lifecycle (Theme, Translation, BLE connectivity).
+- **Role**: Provide global services that require React lifecycle (Theme, Translation, Query cache).
+- Current providers: `ThemeProvider`, `TranslationProvider`, `QueryProvider` (TanStack Query).
 - **Interactions**:
   - Wrapped in the root `_layout.tsx`.
-  - Exposed via specialized **Hooks** (e.g., `useColors`, `useTranslation`).
+  - Exposed via specialized **Hooks** (e.g., `useColors`, `useTranslation`, `useQueryClient`).
 
 ## 6. Translation (`i18n/`)
 
@@ -88,11 +93,13 @@ Managed via `expo-localization` and `i18n-js`.
 Encapsulate reusable business logic.
 
 - **Role**: Functional interface between UI and logic/state.
+- Notable hooks: `useAuth` (TanStack Query auth session), `useDeepLinking` (app-level link listener), `useColors`, `useTranslation`.
 - **Interactions**:
   - Use **Stores** to read/write global state.
-  - Use **Services** for API calls or external interactions (BLE, Supabase).
+  - Use **Services** for API calls (Supabase).
   - Use **Utils** for pure logic/calculations.
   - Provide a clean `{ state, actions }` API to components.
+  - Effect-only hooks (e.g., `useDeepLinking`) return nothing and are called once in a layout component.
 
 ## 8. Utils (`utils/`)
 
@@ -106,9 +113,13 @@ Pure helper functions.
 
 ## Core Services (`services/`)
 
-While not explicitly asked, Services handle external communication (Supabase, BLE).
+Services handle external communication (Supabase) and local data (SQLite, KV storage).
 
+- `services/api/factory.ts` — instantiates and returns the active auth/db service. Swap providers here.
+- `services/api/supabase/` — Supabase auth implementation (`SupabaseAuthService`).
+- `services/database/` — Drizzle ORM + SQLite client.
+- `services/storage/` — KV storage utilities (`kvStorage.ts`, `secureStorage.ts`).
 - **Interactions**:
   - Called by **Hooks**.
   - Stateless or manage their own low-level connection state.
-  - Return raw data that Hooks then process and put into **Stores**.
+  - Return raw data that Hooks then process and put into **Stores** or **QueryClient**.

@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(playwright-cli:*)",
+      "Bash(source:*)",
+      "Bash(nvm use:*)",
+      "Bash(npx playwright-cli:*)",
+      "Bash(npx:*)",
+      "Bash(maestro --version:*)",
+      "WebFetch(domain:maestro.mobile.dev)",
+      "WebFetch(domain:docs.maestro.dev)",
+      "Bash(head:*)",
+      "Bash(yarn test:*)",
+      "Bash(yarn add:*)",
+      "Bash(yarn lint:*)",
+      "Bash(/Users/lcruz/personal/expo-native-boilerplate/components/molecules/IconButton/index.tsx:*)"
+    ]
+  }
+}

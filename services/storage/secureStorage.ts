@@ -1,8 +1,8 @@
-import { createLogger } from "@/utils/logger";
-import * as SecureStore from "expo-secure-store";
-import { Platform } from "react-native";
+import { createLogger } from '@/utils/logger';
+import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
 
-const logger = createLogger("SecureStorage");
+const logger = createLogger('SecureStorage');
 
 /**
  * Maximum size for a single SecureStore value in bytes.
@@ -14,12 +14,12 @@ const CHUNK_SIZE = 2000;
 /**
  * Suffix used for chunk keys when storing large values
  */
-const CHUNK_KEY_SUFFIX = "_chunk_";
+const CHUNK_KEY_SUFFIX = '_chunk_';
 
 /**
  * Marker prefix for chunked values
  */
-const CHUNKED_MARKER = "__chunked__";
+const CHUNKED_MARKER = '__chunked__';
 
 /**
  * Secure Storage Interface
@@ -43,7 +43,7 @@ export interface SecureStorageAdapter {
 const getItem = async (key: string): Promise<string | null> => {
   try {
     // Web fallback to sessionStorage
-    if (Platform.OS === "web") {
+    if (Platform.OS === 'web') {
       return sessionStorage.getItem(key);
     }
 
@@ -55,24 +55,22 @@ const getItem = async (key: string): Promise<string | null> => {
 
     // If value is chunked, reconstruct it
     if (directValue?.startsWith(CHUNKED_MARKER)) {
-      const chunkCount = parseInt(directValue.replace(CHUNKED_MARKER, ""), 10);
+      const chunkCount = parseInt(directValue.replace(CHUNKED_MARKER, ''), 10);
       const chunks: string[] = [];
 
       for (let i = 0; i < chunkCount; i++) {
-        const chunk = await SecureStore.getItemAsync(
-          `${key}${CHUNK_KEY_SUFFIX}${i}`,
-        );
+        const chunk = await SecureStore.getItemAsync(`${key}${CHUNK_KEY_SUFFIX}${i}`);
         if (chunk) {
           chunks.push(chunk);
         }
       }
 
-      return chunks.join("");
+      return chunks.join('');
     }
 
     return null;
   } catch (error) {
-    logger.error("Error getting item from secure store:", error);
+    logger.error('Error getting item from secure store:', error);
     return null;
   }
 };
@@ -88,9 +86,9 @@ const getItem = async (key: string): Promise<string | null> => {
  */
 const setItem = async (key: string, value: string): Promise<void> => {
   try {
-    logger.info("Storing value in secure store:", key, value);
+    logger.info('Storing value in secure store:', key, value);
     // Web fallback to sessionStorage
-    if (Platform.OS === "web") {
+    if (Platform.OS === 'web') {
       sessionStorage.setItem(key, value);
       return;
     }
@@ -112,17 +110,12 @@ const setItem = async (key: string, value: string): Promise<void> => {
 
     // Store each chunk
     for (let i = 0; i < chunks.length; i++) {
-      await SecureStore.setItemAsync(
-        `${key}${CHUNK_KEY_SUFFIX}${i}`,
-        chunks[i],
-      );
+      await SecureStore.setItemAsync(`${key}${CHUNK_KEY_SUFFIX}${i}`, chunks[i]);
     }
 
-    logger.info(
-      `Stored large value (${value.length} bytes) in ${chunks.length} chunks`,
-    );
+    logger.info(`Stored large value (${value.length} bytes) in ${chunks.length} chunks`);
   } catch (error) {
-    logger.error("Error setting item in secure store:", error);
+    logger.error('Error setting item in secure store:', error);
     throw error;
   }
 };
@@ -137,7 +130,7 @@ const setItem = async (key: string, value: string): Promise<void> => {
 const removeItem = async (key: string): Promise<void> => {
   try {
     // Web fallback to sessionStorage
-    if (Platform.OS === "web") {
+    if (Platform.OS === 'web') {
       sessionStorage.removeItem(key);
       return;
     }
@@ -146,7 +139,7 @@ const removeItem = async (key: string): Promise<void> => {
     const value = await SecureStore.getItemAsync(key);
 
     if (value?.startsWith(CHUNKED_MARKER)) {
-      const chunkCount = parseInt(value.replace(CHUNKED_MARKER, ""), 10);
+      const chunkCount = parseInt(value.replace(CHUNKED_MARKER, ''), 10);
 
       // Remove all chunks
       for (let i = 0; i < chunkCount; i++) {
@@ -157,7 +150,7 @@ const removeItem = async (key: string): Promise<void> => {
     // Remove the main key
     await SecureStore.deleteItemAsync(key);
   } catch (error) {
-    logger.error("Error removing item from secure store:", error);
+    logger.error('Error removing item from secure store:', error);
     throw error;
   }
 };

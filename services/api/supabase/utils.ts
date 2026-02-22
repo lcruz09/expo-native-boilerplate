@@ -1,99 +1,35 @@
-import { AuthError } from "@/types/auth";
-import { Gender, UserProfile } from "@/types/profile";
-import { AuthError as SupabaseAuthError } from "@supabase/supabase-js";
+import { AuthError } from '@/types/auth';
+import { PostgrestError } from '@supabase/supabase-js';
 
 /**
- * Supabase Utilities
- *
- * Utility functions for working with Supabase-specific data types and errors.
+ * Minimal shape shared by Supabase auth errors.
+ * Supabase AuthError subclasses carry `status` (HTTP code) and sometimes `code` (string).
  */
-
-/**
- * Profile database type
- * Matches the structure in Supabase database
- */
-export interface ProfileRow {
-  id: string; // UUID - matches auth.users.id
-  email: string;
-  first_name: string | null;
-  last_name: string | null;
-  gender: "male" | "female" | "other";
-  birth_year: number;
-  height: number; // cm
-  weight: number; // kg
-  resting_heart_rate: number | null;
-  created_at: string;
-  updated_at: string;
+interface SupabaseAuthErrorShape {
+  message?: string;
+  status?: number;
+  code?: string;
 }
 
 /**
- * Convert Supabase auth error to app auth error
+ * Handle Supabase authentication errors and convert them to a standard format.
+ *
+ * @param error - The error returned from Supabase
+ * @returns Standardized AuthError
  */
-export const handleAuthError = (
-  error: SupabaseAuthError | Error,
-): AuthError => {
-  if ("status" in error) {
-    const supabaseError = error as SupabaseAuthError;
-    return {
-      message: supabaseError.message,
-      code: supabaseError.code,
-    };
-  }
-
+export const handleAuthError = (error: SupabaseAuthErrorShape): AuthError => {
   return {
-    message: error.message || "An unexpected error occurred",
+    message: error.message || 'An unexpected authentication error occurred',
+    code: error.status?.toString() || error.code,
   };
 };
 
 /**
- * Convert UserProfile to ProfileRow for database
+ * Handle Supabase database/API errors and convert them to a standard format.
+ *
+ * @param error - The error returned from Supabase
+ * @returns Standardized Error object
  */
-export const profileToRow = (
-  userId: string,
-  email: string,
-  profile: Partial<UserProfile>,
-): Partial<ProfileRow> => {
-  return {
-    id: userId,
-    email,
-    first_name: profile.firstName || null,
-    last_name: profile.lastName || null,
-    gender: profile.gender,
-    birth_year: profile.birthYear,
-    height: profile.height,
-    weight: profile.weight,
-    resting_heart_rate: profile.restingHeartRate || null,
-  };
-};
-
-/**
- * Convert ProfileRow to UserProfile
- */
-export const rowToProfile = (row: ProfileRow): UserProfile => {
-  // Convert string gender to Gender enum
-  let gender: Gender;
-  switch (row.gender) {
-    case "male":
-      gender = Gender.MALE;
-      break;
-    case "female":
-      gender = Gender.FEMALE;
-      break;
-    case "other":
-      gender = Gender.OTHER;
-      break;
-    default:
-      gender = Gender.OTHER;
-  }
-
-  return {
-    email: row.email,
-    firstName: row.first_name || undefined,
-    lastName: row.last_name || undefined,
-    gender,
-    birthYear: row.birth_year,
-    height: row.height,
-    weight: row.weight,
-    restingHeartRate: row.resting_heart_rate || undefined,
-  };
+export const handleDatabaseError = (error: PostgrestError): Error => {
+  return new Error(error.message || 'An unexpected database error occurred');
 };

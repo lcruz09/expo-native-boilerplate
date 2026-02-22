@@ -1,4 +1,4 @@
-import * as Device from "expo-device";
+import * as Device from 'expo-device';
 
 /**
  * System information structure
@@ -39,7 +39,7 @@ export const getSystemInfo = (): SystemInfo => {
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   // App version from app.config.js
-  const appVersion = "1.0.0";
+  const appVersion = '1.0.0';
 
   return {
     deviceBrand: Device.brand,

@@ -78,7 +78,7 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
     detectSessionInUrl: false,
   },
   db: {
-    schema: "api", // ← Change from "public" to match your schema
+    schema: 'api', // ← Change from "public" to match your schema
   },
 });
 ```
@@ -170,9 +170,9 @@ The service layer now:
    Add to `app/_layout.tsx`:
    ```typescript
    useEffect(() => {
-     console.log("Current segments:", segments);
-     console.log("Is authenticated:", isAuthenticated);
-     console.log("Has completed onboarding:", hasCompletedOnboarding);
+     console.log('Current segments:', segments);
+     console.log('Is authenticated:', isAuthenticated);
+     console.log('Has completed onboarding:', hasCompletedOnboarding);
    }, [segments, isAuthenticated, hasCompletedOnboarding]);
    ```
 
@@ -195,10 +195,10 @@ npx expo run:android --clear
 Add this to your app temporarily:
 
 ```typescript
-import * as SecureStore from "expo-secure-store";
+import * as SecureStore from 'expo-secure-store';
 
 // Clear all auth data
-await SecureStore.deleteItemAsync("supabase.auth.token");
+await SecureStore.deleteItemAsync('supabase.auth.token');
 ```
 
 ### 3. Check Supabase Project Health
@@ -211,8 +211,8 @@ await SecureStore.deleteItemAsync("supabase.auth.token");
 
 ```typescript
 // Add to app startup
-console.log("Supabase URL:", config.supabase.url);
-console.log("Key configured:", Boolean(config.supabase.publishableKey));
+console.log('Supabase URL:', config.supabase.url);
+console.log('Key configured:', Boolean(config.supabase.publishableKey));
 ```
 
 ### 5. Test with Supabase Dashboard

@@ -1,20 +1,17 @@
-import {
-    createZustandStorage,
-    STORAGE_IDS,
-} from "@/services/storage/kvStorage";
-import { Appearance, ColorSchemeName } from "react-native";
-import { create } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
+import { createZustandStorage, STORAGE_IDS } from '@/services/storage/kvStorage';
+import { Appearance, ColorSchemeName } from 'react-native';
+import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
 
 /**
  * Theme mode options.
  */
-export type ThemeMode = "light" | "dark" | "system";
+export type ThemeMode = 'light' | 'dark' | 'system';
 
 /**
  * Resolved theme (what's actually displayed).
  */
-export type ResolvedTheme = "light" | "dark";
+export type ResolvedTheme = 'light' | 'dark';
 
 /**
  * Theme store state interface.
@@ -54,12 +51,9 @@ interface ThemeStore {
 /**
  * Resolve the actual theme based on mode and system preference.
  */
-const resolveTheme = (
-  mode: ThemeMode,
-  systemColorScheme: ColorSchemeName,
-): ResolvedTheme => {
-  if (mode === "system") {
-    return systemColorScheme === "dark" ? "dark" : "light";
+const resolveTheme = (mode: ThemeMode, systemColorScheme: ColorSchemeName): ResolvedTheme => {
+  if (mode === 'system') {
+    return systemColorScheme === 'dark' ? 'dark' : 'light';
   }
   return mode;
 };
@@ -93,9 +87,9 @@ export const useThemeStore = create<ThemeStore>()(
       const initialSystem: ColorSchemeName = Appearance.getColorScheme();
 
       return {
-        mode: "system", // Default value, will be overridden by persisted value
+        mode: 'system', // Default value, will be overridden by persisted value
         systemColorScheme: initialSystem,
-        resolvedTheme: resolveTheme("system", initialSystem),
+        resolvedTheme: resolveTheme('system', initialSystem),
 
         setMode: (mode) => {
           // Use the current systemColorScheme from the store
@@ -113,7 +107,7 @@ export const useThemeStore = create<ThemeStore>()(
           const { mode, systemColorScheme: currentScheme } = get();
 
           // Keep current scheme if new scheme is null (Android can sometimes return null)
-          const newScheme = scheme ?? currentScheme ?? "light";
+          const newScheme = scheme ?? currentScheme ?? 'light';
           const newResolvedTheme = resolveTheme(mode, newScheme);
 
           set({
@@ -126,10 +120,10 @@ export const useThemeStore = create<ThemeStore>()(
       };
     },
     {
-      name: "theme-storage", // Storage key in MMKV
+      name: 'theme-storage', // Storage key in MMKV
       storage: createJSONStorage(() => createZustandStorage(STORAGE_IDS.THEME)),
       // Only persist the mode, not derived state (systemColorScheme and resolvedTheme are derived)
       partialize: (state) => ({ mode: state.mode }),
-    },
-  ),
+    }
+  )
 );

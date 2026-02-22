@@ -44,3 +44,4 @@ app-example
 /coverage
 .env
 .env.local
+.doppler.yaml

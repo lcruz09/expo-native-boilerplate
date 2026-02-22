@@ -1,9 +1,9 @@
-import { ReactNode } from "react";
+import { ReactNode } from 'react';
 
 /**
  * Notification type for visual styling
  */
-export type NotificationType = "success" | "warning" | "error" | "info";
+export type NotificationType = 'success' | 'warning' | 'error' | 'info';
 
 /**
  * Action button configuration for notifications
@@ -23,7 +23,7 @@ export interface NotificationAction {
    * Button visual variant
    * @default "primary"
    */
-  variant?: "primary" | "secondary";
+  variant?: 'primary' | 'secondary';
 }
 
 /**
@@ -77,18 +77,13 @@ export interface Notification {
 /**
  * Notification input without auto-generated fields
  */
-export type NotificationInput = Omit<Notification, "id" | "createdAt">;
+export type NotificationInput = Omit<Notification, 'id' | 'createdAt'>;
 
 /**
  * Type guard to check if value is a valid NotificationType
  */
-export const isNotificationType = (
-  value: unknown,
-): value is NotificationType => {
-  return (
-    typeof value === "string" &&
-    ["success", "warning", "error", "info"].includes(value)
-  );
+export const isNotificationType = (value: unknown): value is NotificationType => {
+  return typeof value === 'string' && ['success', 'warning', 'error', 'info'].includes(value);
 };
 
 /**
@@ -96,9 +91,9 @@ export const isNotificationType = (
  */
 export const createSuccessNotification = (
   title: string,
-  description?: string,
+  description?: string
 ): NotificationInput => ({
-  type: "success",
+  type: 'success',
   title,
   description,
 });
@@ -108,9 +103,9 @@ export const createSuccessNotification = (
  */
 export const createErrorNotification = (
   title: string,
-  description?: string,
+  description?: string
 ): NotificationInput => ({
-  type: "error",
+  type: 'error',
   title,
   description,
 });
@@ -120,9 +115,9 @@ export const createErrorNotification = (
  */
 export const createWarningNotification = (
   title: string,
-  description?: string,
+  description?: string
 ): NotificationInput => ({
-  type: "warning",
+  type: 'warning',
   title,
   description,
 });
@@ -130,11 +125,8 @@ export const createWarningNotification = (
 /**
  * Helper to create an info notification
  */
-export const createInfoNotification = (
-  title: string,
-  description?: string,
-): NotificationInput => ({
-  type: "info",
+export const createInfoNotification = (title: string, description?: string): NotificationInput => ({
+  type: 'info',
   title,
   description,
 });

@@ -6,7 +6,7 @@ import type {
   LoginCredentials,
   RegisterData,
   UnsubscribeFn,
-} from "./types";
+} from './types';
 
 // Re-export types for convenience
 export type {

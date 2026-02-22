@@ -6,9 +6,9 @@
 
 module.exports = async () => {
   // Ensure FormData exists before expo/jest-expo setup runs
-  if (typeof global.FormData === "undefined") {
+  if (typeof global.FormData === 'undefined') {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const FormData = require("form-data");
+    const FormData = require('form-data');
     global.FormData = FormData;
     globalThis.FormData = FormData;
   }

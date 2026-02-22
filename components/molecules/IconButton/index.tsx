@@ -1,9 +1,9 @@
-import { Button } from "@/components/atoms/Button";
-import { Icon, IconName } from "@/components/atoms/Icon";
-import { Typography } from "@/components/atoms/Typography";
-import { useColors } from "@/hooks/theme/useColors";
-import { ActivityIndicator, View } from "react-native";
-import { styles } from "./styles";
+import { Button } from '@/components/atoms/Button';
+import { Icon, IconName } from '@/components/atoms/Icon';
+import { useColors } from '@/hooks/theme/useColors';
+import { memo } from 'react';
+import { ActivityIndicator, Text, View } from 'react-native';
+import { styles } from './styles';
 
 export interface IconButtonProps {
   /**
@@ -12,7 +12,7 @@ export interface IconButtonProps {
   icon: IconName;
 
   /**
-   * Button label text
+   * Button label text — also used as the accessibility label for screen readers.
    */
   label: string;
 
@@ -34,7 +34,7 @@ export interface IconButtonProps {
   /**
    * Button variant style
    */
-  variant?: "primary" | "secondary";
+  variant?: 'primary' | 'secondary';
 
   /**
    * Custom icon color (overrides theme colors)
@@ -45,6 +45,11 @@ export interface IconButtonProps {
    * Custom text color (overrides theme colors)
    */
   textColor?: string;
+
+  /**
+   * Test ID for e2e testing
+   */
+  testID?: string;
 }
 
 /**
@@ -52,6 +57,9 @@ export interface IconButtonProps {
  *
  * A button with an icon on the left and text label on the right.
  * Supports loading state with spinner, disabled state, and theme variants.
+ *
+ * The `label` prop doubles as the accessibility label so screen readers
+ * announce the button's purpose without extra configuration.
  *
  * Features:
  * - Icon + text layout
@@ -78,37 +86,43 @@ export interface IconButtonProps {
  * />
  * ```
  */
-export const IconButton = ({
-  icon,
-  label,
-  onPress,
-  loading = false,
-  disabled = false,
-  variant = "secondary",
-  iconColor,
-  textColor,
-}: IconButtonProps) => {
-  const colors = useColors();
+export const IconButton = memo(
+  ({
+    icon,
+    label,
+    onPress,
+    loading = false,
+    disabled = false,
+    variant = 'secondary',
+    iconColor,
+    textColor,
+    testID,
+  }: IconButtonProps) => {
+    const colors = useColors();
 
-  // Determine colors based on variant if not explicitly provided
-  const finalIconColor = iconColor || colors.primary;
-  const finalTextColor = textColor || colors.primary;
+    // Determine colors based on variant if not explicitly provided
+    const finalIconColor = iconColor || colors.primary;
+    const finalTextColor = textColor || colors.primary;
 
-  return (
-    <Button onPress={onPress} disabled={disabled || loading} variant={variant}>
-      <View style={styles.container}>
-        {loading ? (
-          <ActivityIndicator size="small" color={finalIconColor} />
-        ) : (
-          <Icon name={icon} size={24} color={finalIconColor} />
-        )}
-        <Typography
-          variant="body"
-          style={[styles.text, { color: finalTextColor }]}
-        >
-          {label}
-        </Typography>
-      </View>
-    </Button>
-  );
-};
+    return (
+      <Button
+        onPress={onPress}
+        disabled={disabled || loading}
+        variant={variant}
+        testID={testID}
+        accessibilityLabel={label}
+        accessibilityState={{ disabled: disabled || loading, busy: loading }}
+      >
+        <View style={styles.container}>
+          {loading ? (
+            <ActivityIndicator size="small" color={finalIconColor} />
+          ) : (
+            <Icon name={icon} size={24} color={finalIconColor} />
+          )}
+          <Text style={[styles.text, { color: finalTextColor }]}>{label}</Text>
+        </View>
+      </Button>
+    );
+  }
+);
+IconButton.displayName = 'IconButton';

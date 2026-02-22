@@ -1,8 +1,8 @@
-import { drizzle } from "drizzle-orm/expo-sqlite";
-import { openDatabaseSync } from "expo-sqlite";
-import * as schema from "./schema";
+import { drizzle } from 'drizzle-orm/expo-sqlite';
+import { openDatabaseSync } from 'expo-sqlite';
+import * as schema from './schema';
 
-const DB_NAME = "wattr.db";
+const DB_NAME = 'wattr.db';
 
 // Open the database synchronously
 const expoDb = openDatabaseSync(DB_NAME);
@@ -45,9 +45,9 @@ export const initDatabase = () => {
         FOREIGN KEY (workout_id) REFERENCES workouts(id) ON DELETE CASCADE
       );
     `);
-    console.log("✅ Database initialized successfully");
+    console.log('✅ Database initialized successfully');
   } catch (error) {
-    console.error("❌ Failed to initialize database:", error);
+    console.error('❌ Failed to initialize database:', error);
     throw error;
   }
 };

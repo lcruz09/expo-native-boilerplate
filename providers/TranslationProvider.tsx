@@ -1,13 +1,7 @@
-import { i18n, supportedLocales, type SupportedLocale } from "@/i18n/config";
-import { loadLocale, saveLocale } from "@/i18n/storage";
-import { getLocales } from "expo-localization";
-import React, {
-  ReactNode,
-  createContext,
-  useCallback,
-  useContext,
-  useState,
-} from "react";
+import { i18n, supportedLocales, type SupportedLocale } from '@/i18n/config';
+import { loadLocale, saveLocale } from '@/i18n/storage';
+import { getLocales } from 'expo-localization';
+import React, { ReactNode, createContext, useCallback, useContext, useState } from 'react';
 
 interface TranslationContextValue {
   locale: SupportedLocale;
@@ -16,9 +10,7 @@ interface TranslationContextValue {
   version: number;
 }
 
-const TranslationContext = createContext<TranslationContextValue | undefined>(
-  undefined,
-);
+const TranslationContext = createContext<TranslationContextValue | undefined>(undefined);
 
 /**
  * Get the initial locale with the following priority:
@@ -34,12 +26,12 @@ const getInitialLocale = (): SupportedLocale => {
   }
 
   // Fall back to device locale
-  const deviceLocale = getLocales()[0]?.languageCode ?? "en";
+  const deviceLocale = getLocales()[0]?.languageCode ?? 'en';
   if (supportedLocales.includes(deviceLocale as SupportedLocale)) {
     return deviceLocale as SupportedLocale;
   }
 
-  return "en";
+  return 'en';
 };
 
 export const TranslationProvider = ({ children }: { children: ReactNode }) => {
@@ -77,9 +69,7 @@ export const TranslationProvider = ({ children }: { children: ReactNode }) => {
 export const useTranslationContext = () => {
   const context = useContext(TranslationContext);
   if (context === undefined) {
-    throw new Error(
-      "useTranslationContext must be used within a TranslationProvider",
-    );
+    throw new Error('useTranslationContext must be used within a TranslationProvider');
   }
   return context;
 };

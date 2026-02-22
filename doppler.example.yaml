@@ -1,0 +1,3 @@
+setup:
+  project: your-doppler-project
+  config: dev

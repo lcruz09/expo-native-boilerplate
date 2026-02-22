@@ -4,318 +4,315 @@
 
 ### Node.js Version
 
-This project requires **Node.js 20.19.4 or higher** (recommended: v22.12.0).
-
-**Check and use the correct version:**
+This project requires **Node.js v22.13.0** (defined in `.nvmrc`).
 
 ```bash
-# Check current Node version
-node --version
-
-# Use the project's Node version (from .nvmrc)
+# Switch to the project's Node version
 nvm use
 
-# If you don't have the version installed
+# If you don't have it installed
 nvm install
 ```
 
-⚠️ **Important**: Always run `nvm use` before installing packages or running the app!
+> Always run `nvm use` before installing packages or running the app.
+
+### Doppler (Secrets Management)
+
+All environment variables are managed via [Doppler](https://www.doppler.com/). The `yarn start`, `yarn android`, and `yarn ios` commands are all prefixed with `doppler run --` and will fail if Doppler is not configured.
+
+```bash
+# Install Doppler CLI (macOS)
+brew install dopplerhq/cli/doppler
+
+# Log in
+doppler login
+
+# Set up the project (uses doppler.yaml)
+doppler setup
+```
+
+For local development without Doppler, copy `.env.example` to `.env` and fill in the values.
+
+---
 
 ## Quick Start
 
-### Interactive Run Script
-
-The easiest way to run the app is using the interactive script:
-
 ```bash
-npm run run
+# 1. Install dependencies
+yarn install
+
+# 2. Configure secrets (pick one)
+doppler setup          # via Doppler (recommended)
+cp .env.example .env   # manual fallback
+
+# 3. Run the app
+yarn ios               # iOS simulator
+yarn android           # Android emulator/device
 ```
 
-This will guide you through:
+---
 
-1. **Platform selection** (iOS or Android)
-2. **Prebuild options** (skip, run, or clean)
-3. **Device selection** (automatic or manual)
+## Available Scripts
 
-### Common Commands
+| Command | Description |
+|---|---|
+| `yarn start` | Start Metro bundler (Doppler-managed) |
+| `yarn ios` | Run on iOS simulator/device |
+| `yarn android` | Run on Android emulator/device |
+| `yarn lint` | ESLint + Prettier check |
+| `yarn tsc --noEmit` | TypeScript type-check |
+| `yarn test` | Run all Jest unit tests |
+| `yarn test:watch` | Jest in watch mode |
+| `yarn test:coverage` | Jest with coverage report |
+| `yarn test:e2e` | Run Maestro E2E flow |
+| `yarn pre-commit` | Full pipeline: format → lint → tsc → test |
 
-#### Development (Metro bundler)
+---
+
+## Native Builds (Prebuild)
+
+### When to run prebuild
+
+Run `npx expo prebuild` when:
+
+- First-time project setup
+- After adding/updating native dependencies
+- After changing native configurations in `app.config.js`
+- After updating the Expo SDK version
 
 ```bash
-# Interactive script (recommended)
-npm run run
+# Update native code
+npx expo prebuild
 
-# Direct commands
-npm run android          # Run on Android
-npm run ios             # Run on iOS
-npm start               # Start Metro bundler only
+# Clean regenerate (slower but ensures a fresh start)
+npx expo prebuild --clean
 ```
 
-#### Prebuild (Native Code)
+---
+
+## Production Builds (EAS)
+
+The project uses [EAS Build](https://docs.expo.dev/build/introduction/) with three profiles defined in `eas.json`:
+
+| Profile | Distribution | Use case |
+|---|---|---|
+| `development` | Internal | Dev client builds with full debugging |
+| `preview` | Internal | Staging/QA builds for internal testing |
+| `production` | App stores | Release builds with auto-increment version |
 
 ```bash
-# Run prebuild (update native dependencies)
-npm run prebuild
-
-# Clean prebuild (remove and regenerate using --clean flag)
-npm run prebuild:clean
-
-# Manual prebuild for specific platform (use npx outside npm scripts)
-npx expo prebuild --platform android
-npx expo prebuild --platform ios
-
-# Manual clean prebuild
-npx expo prebuild --platform android --clean
-```
-
-#### Testing
-
-```bash
-npm test                 # Run all tests
-npm run test:watch       # Run tests in watch mode
-npm run test:coverage    # Run tests with coverage report
-```
-
-#### Linting
-
-```bash
-npm run lint            # Check for linting errors
-npm run lint -- --fix   # Fix linting errors automatically
-```
-
-## Development Builds
-
-The app uses Expo's development builds, which give you:
-
-- ✅ **Hot reload** and **Fast refresh**
-- ✅ **Native module support** (BLE, MMKV, etc.)
-- ✅ **Debug mode** with full logging
-- ✅ **Connected to Metro bundler** for live updates
-
-### Running Development Builds
-
-```bash
-# Interactive (recommended)
-npm run run
-
-# Direct commands
-npm run android
-npm run ios
-```
-
-## Prebuild Explained
-
-### When to run prebuild?
-
-Run `npm run prebuild` when:
-
-- ✅ First time setting up the project
-- ✅ After adding/updating native dependencies (e.g., react-native-mmkv)
-- ✅ After changing `app.json` native configurations
-- ✅ After updating Expo SDK version
-- ✅ When you see "MMKV not available" warnings
-
-### When to clean prebuild?
-
-Run `npm run prebuild:clean` when:
-
-- ✅ Native builds are acting strange
-- ✅ You want to ensure a fresh native setup
-- ✅ You're troubleshooting native module issues
-
-⚠️ **Note**: Clean prebuild takes longer but ensures a fresh start.
-
-## Device Selection
-
-### Automatic (Recommended)
-
-Expo will:
-
-- Show a list of connected/available devices
-- Let you select interactively
-- Remember your choice for next time
-
-### Manual
-
-- For iOS: Lists all connected devices and simulators
-- For Android: Lists all connected devices and emulators
-
-## Production Builds (Future)
-
-For creating standalone production builds to distribute via app stores, you can use EAS Build in the future:
-
-```bash
-# Install EAS CLI (when needed)
+# Install EAS CLI
 npm install -g eas-cli
 eas login
 
-# Create production build
+# Build
+eas build --platform ios --profile development
 eas build --platform android --profile production
-eas build --platform ios --profile production
+
+# Submit to stores
+eas submit --platform ios --profile production
+eas submit --platform android --profile production
 ```
 
-For now, the project uses development builds for all testing and development work.
+---
 
-## Persistence (MMKV)
+## CI/CD
 
-The app uses [react-native-mmkv](https://github.com/mrousavy/react-native-mmkv) for fast, synchronous storage of theme and locale preferences.
+GitHub Actions runs automatically on every push and pull request to `main`/`master`.
 
-### Requirements
+**Pipeline** (`.github/workflows/ci.yml`):
+1. Checkout + Node setup from `.nvmrc`
+2. `yarn install --frozen-lockfile`
+3. `yarn lint`
+4. `yarn tsc --noEmit`
+5. `yarn test`
 
-MMKV V4 requires **both** packages:
+---
 
-- `react-native-mmkv` ✅ (already installed)
-- `react-native-nitro-modules` ✅ (already installed)
+## Pre-commit Hook
 
-### Enabling MMKV
+Husky runs `yarn pre-commit` before every commit:
 
-To enable theme and locale persistence:
+1. `npx prettier --write .` — auto-format all files (including Tailwind class ordering)
+2. `yarn lint` — ESLint check
+3. `yarn tsc` — TypeScript type-check
+4. `yarn test` — full test suite
 
-1. **Run prebuild** (links native modules):
+If any step fails, the commit is blocked until you fix the issue.
 
-   ```bash
-   npm run prebuild:clean
-   ```
+---
 
-2. **Rebuild the app**:
+## Formatting (Prettier)
 
-   ```bash
-   npm run android  # or npm run ios
-   ```
-
-3. **Verify**:
-   - You should NO longer see: "MMKV not available" warnings
-   - Theme and language will persist across app restarts
-
-### Troubleshooting MMKV
-
-If you still see "MMKV not available" warnings after prebuild:
-
-1. Make sure both `react-native-mmkv` and `react-native-nitro-modules` are installed
-2. Run `npm run prebuild:clean` to regenerate native code
-3. Rebuild the app completely
-
-## General Troubleshooting
-
-### App won't start after adding native dependency
-
-**Solution**: Clean prebuild and rebuild
+Prettier is configured in `.prettierrc` with `prettier-plugin-tailwindcss` for automatic Tailwind class ordering.
 
 ```bash
-npm run prebuild:clean
-npm run android  # or npm run ios
+# Format all files
+npx prettier --write .
+
+# Check without modifying
+npx prettier --check .
 ```
 
-### "Command failed" errors
+Prettier also runs as part of the ESLint pipeline (`eslint-plugin-prettier`), so `yarn lint` will surface formatting issues.
 
-**Solution**: Check you have required tools installed:
+---
 
-- **Android**: Android Studio, Android SDK, JDK 17+
-- **iOS**: Xcode (Mac only), CocoaPods
+## Testing
 
-### Metro bundler connection issues
+### Unit Tests
 
-**Solution**: Clear Metro cache
+```bash
+yarn test                    # all tests
+yarn test -- registerSchema  # filter by name
+yarn test:coverage           # with coverage report
+```
+
+Tests use **Jest + jest-expo + @testing-library/react-native**. Shared mocks live in `jest.setup.js` and `jest.mocks.js`.
+
+### E2E Tests (Maestro)
+
+```bash
+# Run auth E2E flow
+yarn test:e2e
+
+# Interactive studio
+yarn test:e2e:studio
+```
+
+E2E tests require `TEST_EMAIL` and `TEST_PASSWORD` to be set in the environment (never hardcoded).
+
+---
+
+## Project Structure
+
+```
+expo-native-boilerplate/
+├── app/                    # Expo Router screens (file-based routing)
+│   ├── (auth)/            # Auth-gated routes
+│   └── _layout.tsx        # Root layout + providers
+├── components/            # Atomic Design components
+│   ├── atoms/             # Basic building blocks (Button, Icon, Pressable)
+│   ├── molecules/         # Atom combinations (IconButton)
+│   └── organisms/         # Feature sections (PageLayout, ErrorBoundary)
+├── hooks/                 # Custom React hooks
+│   ├── api/               # Server state (useAuth)
+│   ├── linking/           # Deep link handling (useDeepLinking)
+│   ├── theme/             # Theme/color hooks
+│   └── localization/      # Translation hook
+├── providers/             # React Context providers (Theme, Translation, Query)
+├── stores/                # Zustand stores
+│   ├── theme/             # Light/dark/system theme
+│   └── user/              # User preferences (language, onboarding)
+├── services/              # External communication
+│   ├── api/               # Auth services (Supabase factory)
+│   ├── database/          # Drizzle ORM + SQLite client
+│   └── storage/           # KV storage + secure storage
+├── schemas/               # Zod validation schemas
+├── i18n/                  # Localization (en, es)
+├── config/                # Env var validation (throws on missing vars)
+├── utils/                 # Pure helper functions + logger
+├── assets/                # Images, fonts
+├── .env.example           # Required env vars reference
+├── doppler.yaml           # Doppler project config
+├── eas.json               # EAS Build profiles
+└── .github/workflows/     # GitHub Actions CI
+```
+
+---
+
+## Coding Standards
+
+### Colors
+
+**Never hardcode hex values.** Always use `useColors()`:
+
+```tsx
+import { useColors } from '@/hooks/theme/useColors';
+
+const MyComponent = () => {
+  const colors = useColors();
+  return <View style={{ backgroundColor: colors.background }} />;
+};
+```
+
+To add a new color, update both light and dark palettes in `stores/theme/themeStore.ts` first.
+
+### Translations
+
+**Never hardcode user-facing strings.** Always use `useTranslation()`:
+
+```tsx
+const { t } = useTranslation();
+return <Text>{t("common.save")}</Text>;
+```
+
+Add keys to `i18n/locales/en.ts` and `i18n/locales/es.ts` using dotted namespaces.
+
+### Component Pattern
+
+All pure components must be memoized and named:
+
+```tsx
+import { memo } from "react";
+
+export const MyAtom = memo(({ label }: Props) => {
+  return <Typography variant="body">{label}</Typography>;
+});
+MyAtom.displayName = "MyAtom";
+```
+
+### Accessibility
+
+Interactive components require accessibility props:
+
+```tsx
+<Pressable
+  accessibilityRole="button"        // defaulted in Pressable atom
+  accessibilityLabel={t("common.close")}
+  accessibilityState={{ disabled: isLoading, busy: isLoading }}
+/>
+```
+
+---
+
+## Troubleshooting
+
+### App won't start after adding a native dependency
+
+```bash
+npx expo prebuild --clean
+yarn ios   # or yarn android
+```
+
+### Metro bundler cache issues
 
 ```bash
 npx expo start --clear
 ```
 
-## Quick Reference
+### Doppler not configured
 
-| Command                  | Purpose                              |
-| ------------------------ | ------------------------------------ |
-| `npm run run`            | Interactive app runner (recommended) |
-| `npm run android`        | Run on Android device                |
-| `npm run ios`            | Run on iOS device                    |
-| `npm start`              | Start Metro bundler                  |
-| `npm run prebuild`       | Update native code                   |
-| `npm run prebuild:clean` | Clean and regenerate native code     |
-| `npm test`               | Run tests                            |
-| `npm run lint`           | Check code style                     |
-
-## Project Structure
-
-```
-wattr-app/
-├── app/                    # Expo Router pages
-├── components/            # React components (Atomic Design)
-│   ├── atoms/            # Basic building blocks
-│   ├── molecules/        # Simple combinations
-│   └── organisms/        # Complex components
-├── hooks/                # Custom React hooks
-├── services/             # Business logic (BLE, etc.)
-├── stores/               # Zustand stores
-├── providers/            # React Context providers
-├── i18n/                 # Internationalization
-├── scripts/              # Build and utility scripts
-└── assets/               # Images, fonts, etc.
+```bash
+doppler login && doppler setup
+# or: cp .env.example .env  (manual fallback)
 ```
 
-## Coding Standards
+### TypeScript errors after pulling changes
 
-### Color Usage
-
-**Rule: Never hardcode color values in components.**
-
-✅ **DO**:
-
-```tsx
-// Use colors from the theme palette
-import { useColors } from "@/hooks/theme/useColors";
-
-const MyComponent = () => {
-  const colors = useColors();
-  return (
-    <View style={{ backgroundColor: colors.primary }}>
-      <Text style={{ color: colors.text.primary }}>Hello</Text>
-    </View>
-  );
-};
+```bash
+yarn install
+yarn tsc --noEmit
 ```
 
-❌ **DON'T**:
-
-```tsx
-// Never hardcode hex colors
-<View style={{ backgroundColor: "#FF6B9D" }}>
-  <Text style={{ color: "#000000" }}>Hello</Text>
-</View>
-```
-
-**Available color palette**:
-
-- `colors.primary` - Primary brand color
-- `colors.secondary` - Secondary brand color
-- `colors.background` - Screen background
-- `colors.card` - Card/container background
-- `colors.border.light` / `colors.border.dark` - Border colors
-- `colors.text.primary` / `colors.text.secondary` / `colors.text.tertiary` - Text colors
-- `colors.status.success` / `colors.status.error` / `colors.status.warning` / `colors.status.info` - Status colors
-
-**If you need a new color that's not in the palette:**
-
-1. Add it to the theme definitions in `stores/theme/themeStore.ts`
-2. Add it to both light and dark theme variants
-3. Use the new color via `useColors()` hook
-
-### Component Organization
-
-Follow the Atomic Design methodology:
-
-- **Atoms**: Basic UI elements (Button, Typography, Icon)
-- **Molecules**: Simple combinations (MetricCard, ConnectionStatus)
-- **Organisms**: Complex features (WorkoutDataView, DeviceLinkingCard)
-
-### Translation Keys
-
-- Always use translation keys from `i18n/locales`
-- Never hardcode user-facing text
-- Add translations to all supported languages (en, es, de, ja, pt-BR)
+---
 
 ## Helpful Links
 
 - [Expo Documentation](https://docs.expo.dev/)
+- [Expo Router Documentation](https://docs.expo.dev/router/introduction/)
 - [EAS Build Documentation](https://docs.expo.dev/build/introduction/)
-- [React Native Documentation](https://reactnative.dev/)
-- [Expo Router Documentation](https://expo.github.io/router/)
+- [Doppler Documentation](https://docs.doppler.com/)
+- [NativeWind Documentation](https://www.nativewind.dev/)
+- [TanStack Query Documentation](https://tanstack.com/query/latest)
+- [Zustand Documentation](https://zustand-demo.pmnd.rs/)

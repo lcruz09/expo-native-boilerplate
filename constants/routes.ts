@@ -13,18 +13,18 @@
  */
 export const ROUTES = {
   // Root
-  HOME: "/",
+  HOME: '/',
 
   // Authentication
-  LOGIN: "/login",
-  REGISTER: "/register",
-  CONFIRM_EMAIL: "/confirm-email",
-  AUTH_CALLBACK: "/auth-callback",
+  LOGIN: '/login',
+  REGISTER: '/register',
+  CONFIRM_EMAIL: '/confirm-email',
+  AUTH_CALLBACK: '/auth-callback',
 
   // User
-  PROFILE: "/profile",
-  SETTINGS: "/settings",
-  ABOUT: "/about",
+  PROFILE: '/profile',
+  SETTINGS: '/settings',
+  ABOUT: '/about',
 } as const;
 
 /**
@@ -33,13 +33,13 @@ export const ROUTES = {
  * Use these constants when checking route segments (e.g., `segments[0] === ROUTE_SEGMENTS.LOGIN`).
  */
 export const ROUTE_SEGMENTS = {
-  LOGIN: "login",
-  REGISTER: "register",
-  CONFIRM_EMAIL: "confirm-email",
-  AUTH_CALLBACK: "auth-callback",
-  PROFILE: "profile",
-  SETTINGS: "settings",
-  ABOUT: "about",
+  LOGIN: 'login',
+  REGISTER: 'register',
+  CONFIRM_EMAIL: 'confirm-email',
+  AUTH_CALLBACK: 'auth-callback',
+  PROFILE: 'profile',
+  SETTINGS: 'settings',
+  ABOUT: 'about',
 } as const;
 
 /**

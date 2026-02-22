@@ -5,21 +5,20 @@
  * Provides type-safe access to translation keys.
  */
 
-import { i18n, type SupportedLocale } from "../../i18n/config";
-import type { Translations } from "../../i18n/locales/en";
-import { useTranslationContext } from "../../providers/TranslationProvider";
+import { i18n, type SupportedLocale } from '../../i18n/config';
+import type { Translations } from '../../i18n/locales/en';
+import { useTranslationContext } from '../../providers/TranslationProvider';
 
 /**
  * Type for nested translation keys
  * Converts nested object structure to dot-notation string type
  */
 type NestedKeyOf<T> = {
-  [K in keyof T & string]: T[K] extends object
-    ? `${K}.${NestedKeyOf<T[K]>}`
-    : K;
+  [K in keyof T & string]: T[K] extends object ? `${K}.${NestedKeyOf<T[K]>}` : K;
 }[keyof T & string];
 
-type TranslationKey = NestedKeyOf<Translations>;
+export type TranslationKey = NestedKeyOf<Translations>;
+export type TranslationOptions = Record<string, string | number>;
 
 /**
  * Hook for accessing translations
@@ -48,13 +47,10 @@ export const useTranslation = () => {
    * Note: This function reads from the global i18n instance.
    * The version dependency ensures re-renders when locale changes.
    */
-  const t = (
-    key: TranslationKey,
-    options?: Record<string, string | number>,
-  ) => {
+  const t = (key: TranslationKey, options?: Record<string, string | number>) => {
     // Force dependency on version to ensure re-render when locale changes
     // This variable access ensures this component re-renders when version updates
-    if (version < 0) return ""; // This will never be true, but creates the dependency
+    if (version < 0) return ''; // This will never be true, but creates the dependency
     return i18n.t(key, options);
   };
 

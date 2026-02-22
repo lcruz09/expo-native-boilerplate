@@ -1,4 +1,4 @@
-import { useTheme } from "./useTheme";
+import { useTheme } from './useTheme';
 
 /**
  * Color palette for the app.
@@ -49,77 +49,77 @@ interface ColorPalette {
 }
 
 const lightColors: ColorPalette = {
-  background: "#FFFFFF",
-  secondary: "#F3F4F6",
-  card: "#FFFFFF",
+  background: '#FFFFFF',
+  secondary: '#F3F4F6',
+  card: '#FFFFFF',
 
-  primary: "#00E1A9",
-  accent: "#00E1A9",
+  primary: '#00E1A9',
+  accent: '#00E1A9',
 
   text: {
-    primary: "#1F2937",
-    secondary: "#6B7280",
-    tertiary: "#9CA3AF",
+    primary: '#1F2937',
+    secondary: '#6B7280',
+    tertiary: '#9CA3AF',
   },
 
   border: {
-    light: "#E5E7EB",
-    medium: "#D1D5DB",
+    light: '#E5E7EB',
+    medium: '#D1D5DB',
   },
 
   status: {
-    success: "#10B981",
-    warning: "#F59E0B",
-    error: "#EF4444",
-    info: "#3B82F6",
+    success: '#10B981',
+    warning: '#F59E0B',
+    error: '#EF4444',
+    info: '#3B82F6',
   },
 
   heartRateZones: {
-    resting: "#6B7280", // gray
-    easy: "#3B82F6", // blue
-    moderate: "#10B981", // green
-    hard: "#F59E0B", // orange
-    maximum: "#EF4444", // red
+    resting: '#6B7280', // gray
+    easy: '#3B82F6', // blue
+    moderate: '#10B981', // green
+    hard: '#F59E0B', // orange
+    maximum: '#EF4444', // red
   },
 
-  overlay: "rgba(0, 0, 0, 0.5)",
+  overlay: 'rgba(0, 0, 0, 0.5)',
 };
 
 const darkColors: ColorPalette = {
-  background: "#000000",
-  secondary: "#1F2937",
-  card: "#1F2937",
+  background: '#000000',
+  secondary: '#1F2937',
+  card: '#1F2937',
 
-  primary: "#00FFB9",
-  accent: "#00FFB9",
+  primary: '#00FFB9',
+  accent: '#00FFB9',
 
   text: {
-    primary: "#F9FAFB",
-    secondary: "#9CA3AF",
-    tertiary: "#6B7280",
+    primary: '#F9FAFB',
+    secondary: '#9CA3AF',
+    tertiary: '#6B7280',
   },
 
   border: {
-    light: "#374151",
-    medium: "#4B5563",
+    light: '#374151',
+    medium: '#4B5563',
   },
 
   status: {
-    success: "#10B981",
-    warning: "#F59E0B",
-    error: "#EF4444",
-    info: "#3B82F6",
+    success: '#10B981',
+    warning: '#F59E0B',
+    error: '#EF4444',
+    info: '#3B82F6',
   },
 
   heartRateZones: {
-    resting: "#6B7280", // gray
-    easy: "#3B82F6", // blue
-    moderate: "#10B981", // green
-    hard: "#F59E0B", // orange
-    maximum: "#EF4444", // red
+    resting: '#6B7280', // gray
+    easy: '#3B82F6', // blue
+    moderate: '#10B981', // green
+    hard: '#F59E0B', // orange
+    maximum: '#EF4444', // red
   },
 
-  overlay: "rgba(0, 0, 0, 0.7)",
+  overlay: 'rgba(0, 0, 0, 0.7)',
 };
 
 /**

@@ -1,6 +1,6 @@
-import { config } from "@/config";
-import { secureStorage } from "@/services/storage/secureStorage";
-import { createClient } from "@supabase/supabase-js";
+import { config } from '@/config';
+import { secureStorage } from '@/services/storage/secureStorage';
+import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = config.supabase.url;
 const supabaseKey = config.supabase.publishableKey;
@@ -27,7 +27,7 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
     detectSessionInUrl: false,
   },
   db: {
-    schema: "public",
+    schema: 'public',
   },
 });
 

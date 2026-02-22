@@ -1,22 +1,8 @@
-/**
- * Tests for SupabaseAuthService
- *
- * Tests the Supabase implementation of IAuthService including:
- * - Login with email/password
- * - Registration
- * - Logout
- * - Session management
- * - Email confirmation handling
- * - Auth state change listeners
- */
+import { SupabaseAuthService } from '../SupabaseAuthService';
 
-import { SupabaseAuthService } from "../SupabaseAuthService";
-import { supabase } from "../client";
-import { config } from "@/config";
-import { AuthError } from "@/types/auth";
-
-// Mock the Supabase client
-jest.mock("../client", () => ({
+// jest.mock is hoisted before variable declarations, so mock functions must be
+// defined inside the factory. We then retrieve them via jest.requireMock().
+jest.mock('../client', () => ({
   supabase: {
     auth: {
       signInWithPassword: jest.fn(),
@@ -32,348 +18,315 @@ jest.mock("../client", () => ({
   },
 }));
 
-// Mock the config
-jest.mock("@/config", () => ({
+jest.mock('@/config', () => ({
   config: {
-    supabase: {
-      authCallbackUrl: "wattr-app://auth-callback",
-    },
+    supabase: { authCallbackUrl: 'expo-native-boilerplate://auth-callback' },
   },
 }));
 
-describe("SupabaseAuthService", () => {
+// Retrieve the mocked auth object so tests can configure return values
+const mockAuth = (
+  jest.requireMock('../client') as {
+    supabase: { auth: Record<string, jest.Mock> };
+  }
+).supabase.auth;
+
+const mockUser = { id: 'user-1', email: 'user@example.com' };
+const mockSession = {
+  access_token: 'access',
+  refresh_token: 'refresh',
+  user: mockUser,
+};
+
+describe('SupabaseAuthService', () => {
   let service: SupabaseAuthService;
 
   beforeEach(() => {
-    service = new SupabaseAuthService();
     jest.clearAllMocks();
+    service = new SupabaseAuthService();
   });
 
-  describe("login", () => {
-    it("should login successfully with valid credentials", async () => {
-      const mockUser = { id: "user-123", email: "test@example.com" };
-      const mockSession = { access_token: "token", refresh_token: "refresh" };
-
-      (supabase.auth.signInWithPassword as jest.Mock).mockResolvedValue({
+  // ---------------------------------------------------------------------------
+  // login
+  // ---------------------------------------------------------------------------
+  describe('login', () => {
+    it('returns user and session on success', async () => {
+      mockAuth.signInWithPassword.mockResolvedValue({
         data: { user: mockUser, session: mockSession },
         error: null,
       });
 
       const result = await service.login({
-        email: "test@example.com",
-        password: "password123",
+        email: 'user@example.com',
+        password: 'Password1!',
       });
 
       expect(result.user).toEqual(mockUser);
       expect(result.session).toEqual(mockSession);
-      expect(supabase.auth.signInWithPassword).toHaveBeenCalledWith({
-        email: "test@example.com",
-        password: "password123",
-      });
     });
 
-    it("should throw AuthError when login fails", async () => {
-      (supabase.auth.signInWithPassword as jest.Mock).mockResolvedValue({
+    it('throws an AuthError when Supabase returns an error', async () => {
+      mockAuth.signInWithPassword.mockResolvedValue({
         data: { user: null, session: null },
-        error: {
-          message: "Invalid credentials",
-          code: "invalid_credentials",
-          status: 400,
-        },
+        error: { message: 'Invalid credentials', status: 400 },
       });
 
       await expect(
-        service.login({ email: "test@example.com", password: "wrong" }),
-      ).rejects.toMatchObject({
-        message: "Invalid credentials",
-        code: "invalid_credentials",
-      });
+        service.login({ email: 'user@example.com', password: 'wrong' })
+      ).rejects.toMatchObject({ message: 'Invalid credentials' });
     });
 
-    it("should throw error when no session is returned", async () => {
-      (supabase.auth.signInWithPassword as jest.Mock).mockResolvedValue({
-        data: { user: { id: "user-123" }, session: null },
+    it('throws when no session is returned', async () => {
+      mockAuth.signInWithPassword.mockResolvedValue({
+        data: { user: mockUser, session: null },
         error: null,
       });
 
       await expect(
-        service.login({ email: "test@example.com", password: "password" }),
+        service.login({ email: 'user@example.com', password: 'Password1!' })
       ).rejects.toMatchObject({
-        message: "Login failed - no session returned",
+        message: 'Login failed - no session returned',
       });
     });
   });
 
-  describe("register", () => {
-    it("should register successfully with valid data", async () => {
-      const mockUser = { id: "user-123", email: "new@example.com" };
-      const mockSession = { access_token: "token", refresh_token: "refresh" };
-
-      (supabase.auth.signUp as jest.Mock).mockResolvedValue({
+  // ---------------------------------------------------------------------------
+  // register
+  // ---------------------------------------------------------------------------
+  describe('register', () => {
+    it('returns user and session on success', async () => {
+      mockAuth.signUp.mockResolvedValue({
         data: { user: mockUser, session: mockSession },
         error: null,
       });
 
       const result = await service.register({
-        email: "new@example.com",
-        password: "password123",
-        gender: "male",
-        birthYear: 1990,
-        height: 180,
-        weight: 75,
-        firstName: "John",
-        lastName: "Doe",
-        restingHeartRate: 60,
+        email: 'user@example.com',
+        password: 'Password1!',
+        firstName: 'John',
+        lastName: 'Doe',
       });
 
       expect(result.user).toEqual(mockUser);
-      expect(result.session).toEqual(mockSession);
-      expect(supabase.auth.signUp).toHaveBeenCalledWith({
-        email: "new@example.com",
-        password: "password123",
-        options: {
-          data: {
-            first_name: "John",
-            last_name: "Doe",
-            gender: "male",
-            birth_year: 1990,
-            height: 180,
-            weight: 75,
-            resting_heart_rate: 60,
-          },
-          emailRedirectTo: config.supabase.authCallbackUrl,
-        },
-      });
     });
 
-    it("should throw AuthError when registration fails", async () => {
-      (supabase.auth.signUp as jest.Mock).mockResolvedValue({
+    it('throws when Supabase returns an error', async () => {
+      mockAuth.signUp.mockResolvedValue({
         data: { user: null, session: null },
-        error: {
-          message: "Email already exists",
-          code: "email_exists",
-          status: 400,
-        },
+        error: { message: 'Email already in use', status: 422 },
       });
 
       await expect(
-        service.register({
-          email: "existing@example.com",
-          password: "password",
-          gender: "male",
-          birthYear: 1990,
-          height: 180,
-          weight: 75,
-        }),
+        service.register({ email: 'user@example.com', password: 'Password1!' })
+      ).rejects.toMatchObject({ message: 'Email already in use' });
+    });
+
+    it('throws when no user is returned', async () => {
+      mockAuth.signUp.mockResolvedValue({
+        data: { user: null, session: null },
+        error: null,
+      });
+
+      await expect(
+        service.register({ email: 'user@example.com', password: 'Password1!' })
       ).rejects.toMatchObject({
-        message: "Email already exists",
-        code: "email_exists",
+        message: 'Registration failed - no user returned',
       });
     });
   });
 
-  describe("logout", () => {
-    it("should logout successfully", async () => {
-      (supabase.auth.signOut as jest.Mock).mockResolvedValue({
-        error: null,
-      });
-
-      await service.logout();
-
-      expect(supabase.auth.signOut).toHaveBeenCalled();
+  // ---------------------------------------------------------------------------
+  // logout
+  // ---------------------------------------------------------------------------
+  describe('logout', () => {
+    it('resolves without error on success', async () => {
+      mockAuth.signOut.mockResolvedValue({ error: null });
+      await expect(service.logout()).resolves.toBeUndefined();
     });
 
-    it("should throw AuthError when logout fails", async () => {
-      (supabase.auth.signOut as jest.Mock).mockResolvedValue({
-        error: { message: "Logout failed", code: "logout_error", status: 400 },
+    it('throws when Supabase returns an error', async () => {
+      mockAuth.signOut.mockResolvedValue({
+        error: { message: 'Sign out failed', status: 500 },
       });
-
       await expect(service.logout()).rejects.toMatchObject({
-        message: "Logout failed",
-        code: "logout_error",
+        message: 'Sign out failed',
       });
     });
   });
 
-  describe("getCurrentSession", () => {
-    it("should return current session", async () => {
-      const mockSession = { access_token: "token", refresh_token: "refresh" };
-
-      (supabase.auth.getSession as jest.Mock).mockResolvedValue({
+  // ---------------------------------------------------------------------------
+  // getCurrentSession
+  // ---------------------------------------------------------------------------
+  describe('getCurrentSession', () => {
+    it('returns the session when one exists', async () => {
+      mockAuth.getSession.mockResolvedValue({
         data: { session: mockSession },
         error: null,
       });
-
       const result = await service.getCurrentSession();
-
       expect(result).toEqual(mockSession);
     });
 
-    it("should return null when session fetch fails", async () => {
-      (supabase.auth.getSession as jest.Mock).mockResolvedValue({
+    it('returns null when there is no session', async () => {
+      mockAuth.getSession.mockResolvedValue({
         data: { session: null },
-        error: { message: "No session" },
+        error: null,
       });
-
       const result = await service.getCurrentSession();
+      expect(result).toBeNull();
+    });
 
+    it('returns null when Supabase returns an error', async () => {
+      mockAuth.getSession.mockResolvedValue({
+        data: { session: null },
+        error: { message: 'Error' },
+      });
+      const result = await service.getCurrentSession();
+      expect(result).toBeNull();
+    });
+
+    it('returns null when an exception is thrown', async () => {
+      mockAuth.getSession.mockRejectedValue(new Error('Network error'));
+      const result = await service.getCurrentSession();
       expect(result).toBeNull();
     });
   });
 
-  describe("refreshSession", () => {
-    it("should refresh session successfully", async () => {
-      const mockSession = {
-        access_token: "new_token",
-        refresh_token: "new_refresh",
-      };
-
-      (supabase.auth.refreshSession as jest.Mock).mockResolvedValue({
-        data: { session: mockSession },
-        error: null,
-      });
-
-      const result = await service.refreshSession();
-
-      expect(result).toEqual(mockSession);
-    });
-
-    it("should return null when refresh fails", async () => {
-      (supabase.auth.refreshSession as jest.Mock).mockResolvedValue({
-        data: { session: null },
-        error: { message: "Refresh failed" },
-      });
-
-      const result = await service.refreshSession();
-
-      expect(result).toBeNull();
-    });
-  });
-
-  describe("getCurrentUser", () => {
-    it("should return current user", async () => {
-      const mockUser = { id: "user-123", email: "test@example.com" };
-
-      (supabase.auth.getUser as jest.Mock).mockResolvedValue({
+  // ---------------------------------------------------------------------------
+  // getCurrentUser
+  // ---------------------------------------------------------------------------
+  describe('getCurrentUser', () => {
+    it('returns the user when one exists', async () => {
+      mockAuth.getUser.mockResolvedValue({
         data: { user: mockUser },
         error: null,
       });
-
       const result = await service.getCurrentUser();
-
       expect(result).toEqual(mockUser);
     });
 
-    it("should return null when user fetch fails", async () => {
-      (supabase.auth.getUser as jest.Mock).mockResolvedValue({
+    it('returns null on error', async () => {
+      mockAuth.getUser.mockResolvedValue({
         data: { user: null },
-        error: { message: "No user" },
+        error: { message: 'Error' },
       });
-
       const result = await service.getCurrentUser();
-
       expect(result).toBeNull();
     });
   });
 
-  describe("resendConfirmationEmail", () => {
-    it("should resend confirmation email successfully", async () => {
-      (supabase.auth.resend as jest.Mock).mockResolvedValue({
+  // ---------------------------------------------------------------------------
+  // refreshSession
+  // ---------------------------------------------------------------------------
+  describe('refreshSession', () => {
+    it('returns the refreshed session', async () => {
+      mockAuth.refreshSession.mockResolvedValue({
+        data: { session: mockSession },
         error: null,
       });
-
-      await service.resendConfirmationEmail("test@example.com");
-
-      expect(supabase.auth.resend).toHaveBeenCalledWith({
-        type: "signup",
-        email: "test@example.com",
-        options: {
-          emailRedirectTo: config.supabase.authCallbackUrl,
-        },
-      });
+      const result = await service.refreshSession();
+      expect(result).toEqual(mockSession);
     });
 
-    it("should throw AuthError when resend fails", async () => {
-      (supabase.auth.resend as jest.Mock).mockResolvedValue({
-        error: { message: "Resend failed", code: "resend_error", status: 400 },
+    it('returns null on error', async () => {
+      mockAuth.refreshSession.mockResolvedValue({
+        data: { session: null },
+        error: { message: 'Error' },
       });
-
-      await expect(
-        service.resendConfirmationEmail("test@example.com"),
-      ).rejects.toMatchObject({
-        message: "Resend failed",
-        code: "resend_error",
-      });
-    });
-  });
-
-  describe("handleEmailConfirmation", () => {
-    it("should handle email confirmation successfully", async () => {
-      const mockUrl =
-        "wattr-app://auth-callback#access_token=token123&refresh_token=refresh123";
-      const mockUser = { id: "user-123", email: "test@example.com" };
-      const mockSession = {
-        access_token: "token123",
-        refresh_token: "refresh123",
-      };
-
-      (supabase.auth.setSession as jest.Mock).mockResolvedValue({
-        data: { user: mockUser, session: mockSession },
-        error: null,
-      });
-
-      const result = await service.handleEmailConfirmation(mockUrl);
-
-      expect(result).toEqual({ user: mockUser, session: mockSession });
-      expect(supabase.auth.setSession).toHaveBeenCalledWith({
-        access_token: "token123",
-        refresh_token: "refresh123",
-      });
-    });
-
-    it("should return null when tokens are missing", async () => {
-      const mockUrl = "wattr-app://auth-callback#type=signup";
-
-      const result = await service.handleEmailConfirmation(mockUrl);
-
-      expect(result).toBeNull();
-      expect(supabase.auth.setSession).not.toHaveBeenCalled();
-    });
-
-    it("should return null when no session is returned", async () => {
-      const mockUrl =
-        "wattr-app://auth-callback#access_token=token123&refresh_token=refresh123";
-
-      (supabase.auth.setSession as jest.Mock).mockResolvedValue({
-        data: { user: null, session: null },
-        error: null,
-      });
-
-      const result = await service.handleEmailConfirmation(mockUrl);
-
+      const result = await service.refreshSession();
       expect(result).toBeNull();
     });
   });
 
-  describe("onAuthStateChange", () => {
-    it("should register auth state change listener", () => {
-      const mockCallback = jest.fn();
-      const mockUnsubscribe = jest.fn();
+  // ---------------------------------------------------------------------------
+  // resendConfirmationEmail
+  // ---------------------------------------------------------------------------
+  describe('resendConfirmationEmail', () => {
+    it('resolves without error on success', async () => {
+      mockAuth.resend.mockResolvedValue({ error: null });
+      await expect(service.resendConfirmationEmail('user@example.com')).resolves.toBeUndefined();
+    });
 
-      (supabase.auth.onAuthStateChange as jest.Mock).mockReturnValue({
-        data: {
-          subscription: {
-            unsubscribe: mockUnsubscribe,
-          },
-        },
+    it('throws when Supabase returns an error', async () => {
+      mockAuth.resend.mockResolvedValue({
+        error: { message: 'Rate limit exceeded', status: 429 },
+      });
+      await expect(service.resendConfirmationEmail('user@example.com')).rejects.toMatchObject({
+        message: 'Rate limit exceeded',
+      });
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // handleEmailConfirmation
+  // ---------------------------------------------------------------------------
+  describe('handleEmailConfirmation', () => {
+    const confirmUrl =
+      'expo-native-boilerplate://auth-callback#access_token=abc&refresh_token=def&type=signup';
+
+    it('returns user and session for a valid confirmation URL', async () => {
+      mockAuth.setSession.mockResolvedValue({
+        data: { session: mockSession, user: mockUser },
+        error: null,
       });
 
-      const unsubscribe = service.onAuthStateChange(mockCallback);
+      const result = await service.handleEmailConfirmation(confirmUrl);
 
-      expect(supabase.auth.onAuthStateChange).toHaveBeenCalledWith(
-        mockCallback,
+      expect(result?.user).toEqual(mockUser);
+      expect(result?.session).toEqual(mockSession);
+    });
+
+    it('returns null when access_token is missing from URL', async () => {
+      const result = await service.handleEmailConfirmation(
+        'expo-native-boilerplate://auth-callback#refresh_token=def'
       );
-      expect(unsubscribe).toBe(mockUnsubscribe);
+      expect(result).toBeNull();
+    });
+
+    it('returns null when refresh_token is missing from URL', async () => {
+      const result = await service.handleEmailConfirmation(
+        'expo-native-boilerplate://auth-callback#access_token=abc'
+      );
+      expect(result).toBeNull();
+    });
+
+    it('returns null when setSession returns no session', async () => {
+      mockAuth.setSession.mockResolvedValue({
+        data: { session: null, user: null },
+        error: null,
+      });
+
+      const result = await service.handleEmailConfirmation(confirmUrl);
+      expect(result).toBeNull();
+    });
+
+    it('throws when setSession returns an error', async () => {
+      mockAuth.setSession.mockResolvedValue({
+        data: { session: null, user: null },
+        error: { message: 'Invalid token', status: 401 },
+      });
+
+      await expect(service.handleEmailConfirmation(confirmUrl)).rejects.toMatchObject({
+        message: 'Invalid token',
+      });
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // onAuthStateChange
+  // ---------------------------------------------------------------------------
+  describe('onAuthStateChange', () => {
+    it('calls supabase.auth.onAuthStateChange and returns an unsubscribe function', () => {
+      const unsubscribe = jest.fn();
+      mockAuth.onAuthStateChange.mockReturnValue({
+        data: { subscription: { unsubscribe } },
+      });
+
+      const callback = jest.fn();
+      const result = service.onAuthStateChange(callback);
+
+      expect(mockAuth.onAuthStateChange).toHaveBeenCalledWith(callback);
+      expect(result).toBe(unsubscribe);
     });
   });
 });

@@ -1,0 +1,15 @@
+appId: com.boilerplate.app
+---
+# Logout Subflow
+# Precondition: Home screen is visible with "Welcome" heading
+- assertVisible: 'Welcome'
+- tapOn:
+    id: 'settings-nav-button'
+- waitForAnimationToEnd
+
+- assertVisible: 'Settings'
+- tapOn:
+    id: 'logout-button'
+- waitForAnimationToEnd
+
+- assertVisible: 'Log In'

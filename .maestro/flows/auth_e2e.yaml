@@ -1,0 +1,18 @@
+appId: com.boilerplate.app
+env:
+  # Set TEST_EMAIL and TEST_PASSWORD as environment variables or pass via:
+  # maestro test --env TEST_EMAIL=you@example.com --env TEST_PASSWORD=yourpassword
+  EMAIL: ${TEST_EMAIL}
+  PASSWORD: ${TEST_PASSWORD}
+---
+- launchApp
+- waitForAnimationToEnd
+
+# If already authenticated, logout first to reset to a clean state
+- runFlow:
+    when:
+      visible: 'Welcome'
+    file: ../subflows/logout.yaml
+
+# Perform login (precondition: landing screen with "Log In" button is visible)
+- runFlow: ../subflows/login.yaml

@@ -1,183 +1,186 @@
-import { Button } from "@/components/atoms/Button";
-import { FormInput } from "@/components/atoms/FormInput";
-import { Icon } from "@/components/atoms/Icon";
-import { Typography } from "@/components/atoms/Typography";
-import { ROUTES } from "@/constants/routes";
-import { useAuth } from "@/hooks/auth/useAuth";
-import { useTranslation } from "@/hooks/localization/useTranslation";
-import { useColors } from "@/hooks/theme/useColors";
-import { LoginFormData, createLoginSchema } from "@/schemas/loginSchema";
-import { AUTH_ERROR_CODES, getErrorCode } from "@/utils/errors";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useNavigation, useRouter } from "expo-router";
-import { useLayoutEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { Button } from '@/components/atoms/Button';
+import { Icon } from '@/components/atoms/Icon';
+import { Pressable } from '@/components/atoms/Pressable';
+import { PageLayout } from '@/components/organisms/PageLayout';
+import { useAuth } from '@/hooks/api/useAuth';
 import {
-  Alert,
-  KeyboardAvoidingView,
-  Pressable,
-  ScrollView,
-  View,
-} from "react-native";
+  useTranslation,
+  type TranslationKey,
+  type TranslationOptions,
+} from '@/hooks/localization/useTranslation';
+import { useColors } from '@/hooks/theme/useColors';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter } from 'expo-router';
+import React from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, View } from 'react-native';
+import { z } from 'zod';
 
-/**
- * Login Screen
- *
- * Allows users to login with their email and password.
- * Includes links to registration and password reset.
- *
- * @example
- * ```tsx
- * // Accessed via routing
- * router.push(ROUTES.LOGIN);
- * ```
- */
-const LoginScreen = () => {
-  const router = useRouter();
-  const navigation = useNavigation();
+const createLoginSchema = (t: (key: TranslationKey, options?: TranslationOptions) => string) =>
+  z.object({
+    email: z.string().email(t('auth.login.errors.invalidEmail')),
+    password: z
+      .string()
+      .min(8, t('auth.login.errors.passwordLength'))
+      .regex(/[A-Z]/, t('auth.login.errors.passwordUppercase'))
+      .regex(/[a-z]/, t('auth.login.errors.passwordLowercase'))
+      .regex(/[0-9]/, t('auth.login.errors.passwordNumber')),
+  });
+
+type LoginFormValues = z.infer<ReturnType<typeof createLoginSchema>>;
+
+export default function LoginScreen() {
   const colors = useColors();
+  const router = useRouter();
   const { t } = useTranslation();
   const { login, isLoading } = useAuth();
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [serverError, setServerError] = React.useState<string | null>(null);
 
-  const { control, handleSubmit } = useForm<LoginFormData>({
-    resolver: zodResolver(createLoginSchema(t)),
+  const loginSchema = React.useMemo(() => createLoginSchema(t), [t]);
+
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "",
-      password: "",
+      email: '',
+      password: '',
     },
   });
 
-  const onSubmit = async (data: LoginFormData) => {
+  const onSubmit = async (data: LoginFormValues) => {
     try {
-      setSubmitError(null);
+      setServerError(null);
       await login(data);
-      // Navigation will be handled by auth state change
-    } catch (error) {
-      // Check if email is not confirmed using error code
-      const errorCode = getErrorCode(error);
-
-      if (errorCode === AUTH_ERROR_CODES.EMAIL_NOT_CONFIRMED) {
-        // Redirect to email confirmation page
-        router.push(
-          `${ROUTES.CONFIRM_EMAIL}?email=${encodeURIComponent(data.email)}`,
-        );
-        return;
-      }
-
-      const errorMessage =
-        error instanceof Error ? error.message : t("auth.loginFailed");
-      setSubmitError(errorMessage);
+      router.replace('/');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'An error occurred during login';
+      setServerError(message);
     }
   };
 
-  const handleForgotPassword = () => {
-    // Placeholder for future implementation
-    Alert.alert(t("auth.forgotPassword"), t("common.comingSoon"), [
-      { text: t("common.ok") },
-    ]);
-  };
-
-  // Configure header with settings button
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerShown: true,
-      title: t("auth.loginSuccess"),
-      headerRight: () => (
-        <Pressable
-          onPress={() => router.push(ROUTES.SETTINGS)}
-          style={{ padding: 8 }}
-        >
-          <Icon name="settings-outline" size={28} color={colors.text.primary} />
-        </Pressable>
-      ),
-    });
-  }, [navigation, t, colors, router]);
-
   return (
-    <KeyboardAvoidingView behavior={"padding"} className="flex-1">
-      <ScrollView
+    <PageLayout hasSafeAreaTop hasTabBar={false}>
+      <View className="px-4 py-2">
+        <Pressable
+          onPress={() => router.back()}
+          className="h-10 w-10 items-center justify-center rounded-full active:bg-zinc-100 dark:active:bg-zinc-800"
+        >
+          <Icon name="chevron-back" color={colors.text.primary} />
+        </Pressable>
+      </View>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1"
-        contentContainerStyle={{ flexGrow: 1 }}
-        keyboardShouldPersistTaps="handled"
       >
-        <View className="flex-1 px-6 pt-8">
-          {/* Header Description */}
-          <View className="mb-8">
-            <Typography variant="body" style={{ color: colors.text.secondary }}>
-              {t("auth.loginDescription")}
-            </Typography>
-          </View>
-
-          {/* Error Message */}
-          {submitError && (
-            <View
-              className="mb-4 rounded-lg p-4"
-              style={{ backgroundColor: colors.status.error + "20" }}
-            >
-              <Typography variant="body" style={{ color: colors.status.error }}>
-                {submitError}
-              </Typography>
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="flex-1">
+          <View className="flex-1 px-6 pt-4">
+            <View className="mb-10">
+              <Text className="mb-2 text-3xl font-bold" style={{ color: colors.text.primary }}>
+                {t('auth.login.title')}
+              </Text>
+              <Text className="text-base opacity-60" style={{ color: colors.text.secondary }}>
+                {t('auth.login.subtitle')}
+              </Text>
             </View>
-          )}
 
-          {/* Login Form */}
-          <FormInput
-            control={control}
-            name="email"
-            label={t("auth.email")}
-            placeholder={t("auth.emailPlaceholder")}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
+            <View className="space-y-6">
+              <View>
+                <Text
+                  className="mb-2 ml-1 text-sm font-semibold"
+                  style={{ color: colors.text.secondary }}
+                >
+                  {t('auth.login.emailLabel')}
+                </Text>
+                <Controller
+                  control={control}
+                  name="email"
+                  render={({ field: { onChange, onBlur, value } }) => (
+                    <TextInput
+                      testID="email-input"
+                      className="h-14 w-full rounded-2xl bg-zinc-100 px-4 text-base dark:bg-zinc-900"
+                      style={{ color: colors.text.primary }}
+                      onBlur={onBlur}
+                      onChangeText={onChange}
+                      value={value}
+                      placeholder={t('auth.login.emailPlaceholder')}
+                      placeholderTextColor={colors.text.secondary + '80'}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      autoComplete="email"
+                    />
+                  )}
+                />
+                {errors.email && (
+                  <Text className="ml-1 mt-1 text-xs text-red-500">{errors.email.message}</Text>
+                )}
+              </View>
 
-          <FormInput
-            control={control}
-            name="password"
-            label={t("auth.password")}
-            placeholder={t("auth.passwordPlaceholder")}
-            secureTextEntry
-            showPasswordToggle
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
+              <View>
+                <Text
+                  className="mb-2 ml-1 text-sm font-semibold"
+                  style={{ color: colors.text.secondary }}
+                >
+                  {t('auth.login.passwordLabel')}
+                </Text>
+                <Controller
+                  control={control}
+                  name="password"
+                  render={({ field: { onChange, onBlur, value } }) => (
+                    <TextInput
+                      testID="password-input"
+                      className="h-14 w-full rounded-2xl bg-zinc-100 px-4 text-base dark:bg-zinc-900"
+                      style={{ color: colors.text.primary }}
+                      onBlur={onBlur}
+                      onChangeText={onChange}
+                      value={value}
+                      placeholder={t('auth.login.passwordPlaceholder')}
+                      placeholderTextColor={colors.text.secondary + '80'}
+                      secureTextEntry
+                      autoCapitalize="none"
+                    />
+                  )}
+                />
+                {errors.password && (
+                  <Text className="ml-1 mt-1 text-xs leading-4 text-red-500">
+                    {errors.password.message}
+                  </Text>
+                )}
+              </View>
 
-          {/* Forgot Password Link */}
-          <Pressable onPress={handleForgotPassword} className="mb-4">
-            <Typography
-              variant="body"
-              style={{ color: colors.primary, textAlign: "right" }}
-            >
-              {t("auth.forgotPassword")}
-            </Typography>
-          </Pressable>
+              {serverError && (
+                <View className="rounded-2xl border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950/30">
+                  <Text className="text-center text-sm font-medium text-red-600 dark:text-red-400">
+                    {serverError}
+                  </Text>
+                </View>
+              )}
 
-          {/* Login Button */}
-          <Button onPress={handleSubmit(onSubmit)} disabled={isLoading}>
-            <Typography
-              variant="body"
-              style={{ color: colors.card, fontWeight: "600" }}
-            >
-              {isLoading ? t("auth.signingIn") : t("auth.signIn")}
-            </Typography>
-          </Button>
+              <View className="pt-4">
+                <Button
+                  onPress={handleSubmit(onSubmit)}
+                  variant="primary"
+                  size="large"
+                  loading={isLoading}
+                >
+                  {t('auth.login.submitButton')}
+                </Button>
+              </View>
+            </View>
 
-          {/* Register Link */}
-          <View className="flex-row items-center justify-center mt-6">
-            <Typography variant="body" style={{ color: colors.text.secondary }}>
-              {t("auth.dontHaveAccount")}{" "}
-            </Typography>
-            <Pressable onPress={() => router.push(ROUTES.REGISTER)}>
-              <Typography variant="body" style={{ color: colors.primary }}>
-                {t("auth.createAccount")}
-              </Typography>
-            </Pressable>
+            <View className="mt-auto items-center pb-8">
+              <Text className="text-sm opacity-60" style={{ color: colors.text.secondary }}>
+                {t('auth.login.noAccount')}{' '}
+                <Text className="font-bold" style={{ color: colors.primary }} onPress={() => {}}>
+                  {t('auth.login.contactSupport')}
+                </Text>
+              </Text>
+            </View>
           </View>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </PageLayout>
   );
-};
-
-export default LoginScreen;
+}

@@ -1,17 +1,18 @@
-import { Pressable, PressableProps } from "@/components/atoms/Pressable";
-import { ImpactFeedbackStyle } from "expo-haptics";
-import React, { ReactNode } from "react";
-import { Text } from "react-native";
+import { Pressable, PressableProps } from '@/components/atoms/Pressable';
+import { useColors } from '@/hooks/theme/useColors';
+import { ImpactFeedbackStyle } from 'expo-haptics';
+import { memo, ReactNode } from 'react';
+import { ActivityIndicator, Text } from 'react-native';
 
 /**
  * Button variant types following a consistent design system.
  */
-export type ButtonVariant = "primary" | "secondary" | "danger";
+export type ButtonVariant = 'primary' | 'secondary' | 'danger';
 
 /**
  * Button size variants.
  */
-export type ButtonSize = "small" | "medium" | "large";
+export type ButtonSize = 'small' | 'medium' | 'large';
 
 export interface ButtonProps extends PressableProps {
   /**
@@ -36,6 +37,12 @@ export interface ButtonProps extends PressableProps {
    * @default false
    */
   fullWidth?: boolean;
+
+  /**
+   * Whether the button is in a loading state.
+   * @default false
+   */
+  loading?: boolean;
 }
 
 /**
@@ -43,83 +50,81 @@ export interface ButtonProps extends PressableProps {
  *
  * Supports three variants: primary (cyan), secondary (gray), and danger (red).
  * Includes light haptic feedback on press by default.
- *
- * @example
- * ```tsx
- * <Button variant="primary" onPress={handlePress}>
- *   Connect
- * </Button>
- *
- * <Button variant="danger" size="large" onPress={handleDisconnect}>
- *   Disconnect
- * </Button>
- *
- * <Button variant="primary" hapticStyle={ImpactFeedbackStyle.Heavy}>
- *   Important Action
- * </Button>
- * ```
+ * Wrapped in `memo` to avoid re-renders when props are unchanged.
  */
-export const Button = ({
-  children,
-  variant = "primary",
-  size = "large",
-  fullWidth = false,
-  disabled,
-  className,
-  hapticStyle = ImpactFeedbackStyle.Light,
-  ...props
-}: ButtonProps) => {
-  // Variant styles (theme-aware)
-  const variantClasses = {
-    primary: "bg-primary active:bg-primary/80",
-    secondary:
-      "bg-secondary dark:bg-secondary-dark active:bg-secondary/80 dark:active:bg-secondary-dark/80",
-    danger: "bg-red-600 active:bg-red-700",
-  };
+export const Button = memo(
+  ({
+    children,
+    variant = 'primary',
+    size = 'large',
+    fullWidth = false,
+    loading = false,
+    disabled,
+    className,
+    hapticStyle = ImpactFeedbackStyle.Light,
+    ...props
+  }: ButtonProps) => {
+    const colors = useColors();
 
-  // Size styles
-  const sizeClasses = {
-    small: "py-2 px-4",
-    medium: "py-3 px-6",
-    large: "py-4 px-8",
-  };
+    // Variant styles (theme-aware)
+    const variantClasses = {
+      primary: 'bg-primary active:bg-primary/80',
+      secondary:
+        'bg-secondary dark:bg-secondary-dark active:bg-secondary/80 dark:active:bg-secondary-dark/80',
+      danger: 'bg-red-600 active:bg-red-700',
+    };
 
-  // Text size styles
-  const textSizeClasses = {
-    small: "text-sm",
-    medium: "text-base",
-    large: "text-lg",
-  };
+    // Size styles
+    const sizeClasses = {
+      small: 'py-2 px-4',
+      medium: 'py-3 px-6',
+      large: 'py-4 px-8',
+    };
 
-  const buttonClasses = [
-    variantClasses[variant],
-    sizeClasses[size],
-    "rounded-xl",
-    "items-center", // Center content horizontally
-    "justify-center", // Center content vertically
-    fullWidth ? "w-full" : "",
-    disabled ? "opacity-50" : "",
-    className || "",
-  ]
-    .filter(Boolean)
-    .join(" ");
+    // Text size styles
+    const textSizeClasses = {
+      small: 'text-sm',
+      medium: 'text-base',
+      large: 'text-lg',
+    };
 
-  return (
-    <Pressable
-      className={buttonClasses}
-      disabled={disabled}
-      hapticStyle={hapticStyle}
-      {...props}
-    >
-      {typeof children === "string" ? (
-        <Text
-          className={`text-center ${variant === "primary" ? "text-text-primary-dark" : "text-text-primary dark:text-text-primary-dark"} font-semibold ${textSizeClasses[size]}`}
-        >
-          {children}
-        </Text>
-      ) : (
-        children
-      )}
-    </Pressable>
-  );
-};
+    const buttonClasses = [
+      variantClasses[variant],
+      sizeClasses[size],
+      'rounded-xl',
+      'items-center',
+      'justify-center',
+      fullWidth ? 'w-full' : '',
+      disabled || loading ? 'opacity-50' : '',
+      className || '',
+    ]
+      .filter(Boolean)
+      .join(' ');
+
+    return (
+      <Pressable
+        className={buttonClasses}
+        disabled={disabled || loading}
+        hapticStyle={hapticStyle}
+        accessibilityState={{ disabled: !!(disabled || loading), busy: loading }}
+        {...props}
+      >
+        {loading ? (
+          <ActivityIndicator
+            color={variant === 'primary' ? '#000' : colors.text.primary}
+            size="small"
+          />
+        ) : typeof children === 'string' ? (
+          <Text
+            className={`text-center ${variant === 'primary' ? 'text-text-primary-dark' : 'text-text-primary dark:text-text-primary-dark'} font-semibold ${textSizeClasses[size]}`}
+          >
+            {children}
+          </Text>
+        ) : (
+          children
+        )}
+      </Pressable>
+    );
+  }
+);
+Button.displayName = 'Button';

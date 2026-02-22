@@ -24,18 +24,16 @@
 
 // Set test environment variables with fallback defaults
 process.env.EXPO_PUBLIC_SUPABASE_URL =
-  process.env.EXPO_PUBLIC_SUPABASE_URL ||
-  "https://test-placeholder.supabase.co";
+  process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://test-placeholder.supabase.co';
 
 process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY =
-  process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-  "test_key_for_ci_environment";
+  process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY || 'test_key_for_ci_environment';
 
 process.env.EXPO_PUBLIC_AUTH_CALLBACK_URL =
-  process.env.EXPO_PUBLIC_AUTH_CALLBACK_URL || "wattr-app://auth-callback";
+  process.env.EXPO_PUBLIC_AUTH_CALLBACK_URL || 'wattr-app://auth-callback';
 
 // Provide minimal FormData polyfill before Expo test setup runs
-if (typeof global.FormData === "undefined") {
+if (typeof global.FormData === 'undefined') {
   class FormDataPolyfill {
     append() {
       // no-op for tests

@@ -1,4 +1,4 @@
-import { Session, User } from "@supabase/supabase-js";
+import { Session, User } from '@supabase/supabase-js';
 
 /**
  * Authentication Types
@@ -26,23 +26,13 @@ export interface LoginCredentials {
 
 /**
  * Registration data interface
- * Contains both auth credentials and profile information
+ * Contains both auth credentials and basic profile information
  */
 export interface RegisterData {
-  // Auth fields
   email: string;
   password: string;
-
-  // Required profile fields
-  gender: "male" | "female" | "other";
-  birthYear: number;
-  height: number; // cm
-  weight: number; // kg
-
-  // Optional profile fields
   firstName?: string;
   lastName?: string;
-  restingHeartRate?: number;
 }
 
 /**
