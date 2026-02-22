@@ -1,6 +1,6 @@
 # Supabase Troubleshooting Guide
 
-This document provides solutions to common Supabase-related issues in the Wattr app.
+This document provides solutions to common Supabase-related issues in the Expo Native Boilerplate.
 
 ## Issue 1: SecureStore Warning - Value Larger Than 2048 Bytes
 
@@ -93,88 +93,7 @@ After making changes, test by:
 
 ---
 
-## Issue 3: Profile Service Logging Errors
 
-### Symptoms
-
-```
-ERROR [ProfileService] Error fetching profile: ...
-ERROR [ProfileService] Error creating profile: ...
-```
-
-### Cause
-
-The profile service was logging errors before throwing them, causing duplicate logs and violating the service layer architecture pattern.
-
-### Solution ✅
-
-**Fixed** - All error logging removed from `services/supabase/profiles.ts`.
-
-The service layer now:
-
-- ✅ Logs **only** successful operations (`logger.info`)
-- ✅ Throws errors without logging
-- ✅ Returns `null` silently for "not found" cases
-- ✅ Lets the caller (hooks) decide how to log
-
----
-
-## Issue 4: Profile Created But Then Redirected Home
-
-### Symptoms
-
-- User logs in successfully
-- Profile shows briefly
-- App redirects to home screen
-
-### Possible Causes & Solutions
-
-#### A. Profile Not Persisting Due to Schema Error
-
-- **Check**: Look for `PGRST106` errors in console
-- **Fix**: See "Issue 2" above
-
-#### B. Navigation State Issue
-
-- **Check**: Look for navigation-related errors in console
-- **Debug**: Check `app/_layout.tsx` for routing logic
-
-#### C. Session Not Persisting
-
-- **Check**: Look for SecureStore errors
-- **Fix**: Ensure chunking is working (see "Issue 1")
-
-### Debugging Steps
-
-1. **Check Console Logs**:
-
-   ```
-   INFO  [AuthService] Login successful for: user@example.com
-   INFO  [ProfileStore] Loading profile from Supabase
-   INFO  [ProfileService] Fetching profile for user: <uuid>
-   ```
-
-2. **Verify Profile in Supabase**:
-   - Go to Supabase dashboard
-   - **Table Editor** → **profiles**
-   - Check if the user's profile exists
-
-3. **Check Auth State**:
-
-   ```
-   INFO  [AuthStore] Auth state changed: SIGNED_IN
-   INFO  [AuthStore] Setting session: user@example.com
-   ```
-
-4. **Enable Detailed Logging**:
-   Add to `app/_layout.tsx`:
-   ```typescript
-   useEffect(() => {
-     console.log('Current segments:', segments);
-     console.log('Is authenticated:', isAuthenticated);
-     console.log('Has completed onboarding:', hasCompletedOnboarding);
-   }, [segments, isAuthenticated, hasCompletedOnboarding]);
-   ```
 
 ---
 

@@ -1,6 +1,6 @@
 # Supabase Setup Guide
 
-This guide explains how to set up Supabase for authentication and profile storage in the Wattr fitness app.
+This guide explains how to set up Supabase for authentication and profile storage in your Expo Native Boilerplate project.
 
 ## Prerequisites
 
@@ -56,11 +56,6 @@ CREATE TABLE profiles (
   email TEXT NOT NULL,
   first_name TEXT,
   last_name TEXT,
-  gender TEXT NOT NULL CHECK (gender IN ('male', 'female', 'other')),
-  birth_year INTEGER NOT NULL CHECK (birth_year >= 1924 AND birth_year <= EXTRACT(YEAR FROM CURRENT_DATE) - 10),
-  height INTEGER NOT NULL CHECK (height >= 100 AND height <= 250),
-  weight NUMERIC(5,2) NOT NULL CHECK (weight >= 20 AND weight <= 300),
-  resting_heart_rate INTEGER CHECK (resting_heart_rate >= 30 AND resting_heart_rate <= 100),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -171,11 +166,6 @@ If you want to customize email templates for authentication:
 | email              | TEXT        | Yes      | User's email address                       |
 | first_name         | TEXT        | No       | User's first name                          |
 | last_name          | TEXT        | No       | User's last name                           |
-| gender             | TEXT        | Yes      | User's gender (male, female, other)        |
-| birth_year         | INTEGER     | Yes      | User's birth year (1924-current year - 10) |
-| height             | INTEGER     | Yes      | User's height in centimeters (100-250)     |
-| weight             | NUMERIC     | Yes      | User's weight in kilograms (20-300)        |
-| resting_heart_rate | INTEGER     | No       | Resting heart rate in BPM (30-100)         |
 | created_at         | TIMESTAMPTZ | Yes      | When the profile was created               |
 | updated_at         | TIMESTAMPTZ | Yes      | When the profile was last updated          |
 
